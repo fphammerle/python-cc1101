@@ -106,7 +106,7 @@ class CC1101:
                     version, self._SUPPORTED_VERSION
                 )
             )
-        marcstate = self.getMainRadioControlStateMachineState()
+        marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != self.MainRadioControlStateMachineState.IDLE:
             raise ValueError("expected marcstate idle (actual: {})".format(marcstate))
         return self
@@ -116,16 +116,18 @@ class CC1101:
         self._spi.close()
         return False
 
-    def getMainRadioControlStateMachineState(self) -> MainRadioControlStateMachineState:
+    def get_main_radio_control_state_machine_state(
+        self
+    ) -> MainRadioControlStateMachineState:
         return self.MainRadioControlStateMachineState(
             self._read_status_register(self._SPIAddress.MARCSTATE)
         )
 
-    def getMARCState(self) -> MainRadioControlStateMachineState:
+    def get_marc_state(self) -> MainRadioControlStateMachineState:
         """
-        alias for getMainRadioControlStateMachineState()
+        alias for get_main_radio_control_state_machine_state()
         """
-        return self.getMainRadioControlStateMachineState()
+        return self.get_main_radio_control_state_machine_state()
 
     @classmethod
     def _frequency_control_word_to_hertz(cls, control_word: typing.List[int]) -> float:
@@ -162,6 +164,6 @@ class CC1101:
 
     def __str__(self) -> str:
         return "CC1101(marcstate={}, base_frequency={:.2f}MHz)".format(
-            self.getMainRadioControlStateMachineState().name.lower(),
+            self.get_main_radio_control_state_machine_state().name.lower(),
             self.get_base_frequency_hertz() / 10 ** 6,
         )
