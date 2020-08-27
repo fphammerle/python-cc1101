@@ -158,13 +158,20 @@ class CC1101:
         """
         return self._read_single_byte(self._SPIAddress.MDMCFG3)
 
-    def get_symbol_rate_baud(self) -> float:
+    @classmethod
+    def _symbol_rate_floating_point_to_real(cls, mantissa: int, exponent: int) -> float:
         # see "12 Data Rate Programming"
         return (
-            (256 + self._get_symbol_rate_mantissa())
-            * (2 ** self._get_symbol_rate_exponent())
-            * self._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ
+            (256 + mantissa)
+            * (2 ** exponent)
+            * cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ
             / (2 ** 28)
+        )
+
+    def get_symbol_rate_baud(self) -> float:
+        return self._symbol_rate_floating_point_to_real(
+            mantissa=self._get_symbol_rate_mantissa(),
+            exponent=self._get_symbol_rate_exponent(),
         )
 
     def get_modulation_format(self) -> ModulationFormat:
