@@ -36,6 +36,7 @@ class CC1101:
         FREQ2 = 0x0D
         FREQ1 = 0x0E
         FREQ0 = 0x0F
+        MDMCFG2 = 0x012
         MCSM0 = 0x18
         # > For register addresses in the range 0x30-0x3D,
         # > the burst bit is used to select between
@@ -57,6 +58,17 @@ class CC1101:
         # > accessed, and the RX FIFO is accessed when
         # > the R/W-bit is one.
         TXFIFO = 0x3F
+
+    class ModulationFormat(enum.IntEnum):
+        """
+        MDMCFG2.MOD_FORMAT
+        """
+
+        FSK2 = 0b000
+        GFSK = 0b001
+        ASK_OOK = 0b011
+        FSK4 = 0b100
+        MSK = 0b111
 
     class MainRadioControlStateMachineState(enum.IntEnum):
         """
@@ -93,6 +105,12 @@ class CC1101:
             chip_status & 0b1111,
         )
 
+    def _read_single_byte(self, register: _SPIAddress) -> int:
+        response = self._spi.xfer([register | self._READ_SINGLE_BYTE, 0])
+        assert len(response) == 2, response
+        self._log_chip_status_byte(response[0])
+        return response[1]
+
     def _read_burst(self, start_register: _SPIAddress, length: int) -> typing.List[int]:
         response = self._spi.xfer([start_register | self._READ_BURST] + [0] * length)
         assert len(response) == length + 1, response
@@ -126,6 +144,16 @@ class CC1101:
     def _reset(self) -> None:
         self._command_strobe(self._SPIAddress.SRES)
 
+    def get_modulation_format(self) -> ModulationFormat:
+        mdmcfg2 = self._read_single_byte(self._SPIAddress.MDMCFG2)
+        return self.ModulationFormat((mdmcfg2 >> 4) & 0b111)
+
+    def _set_modulation_format(self, modulation_format: ModulationFormat) -> None:
+        mdmcfg2 = self._read_single_byte(self._SPIAddress.MDMCFG2)
+        mdmcfg2 &= ~(modulation_format << 4)
+        mdmcfg2 |= modulation_format << 4
+        self._write_burst(self._SPIAddress.MDMCFG2, [mdmcfg2])
+
     def __enter__(self) -> "CC1101":
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
         self._spi.open(0, 0)
@@ -145,6 +173,8 @@ class CC1101:
                     version, self._SUPPORTED_VERSION
                 )
             )
+        # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
+        self._set_modulation_format(self.ModulationFormat.ASK_OOK)
         # 7:6 unused
         # 5:4 FS_AUTOCAL: calibrate when going from IDLE to RX or TX
         # 3:2 PO_TIMEOUT: default
@@ -208,9 +238,10 @@ class CC1101:
         )
 
     def __str__(self) -> str:
-        return "CC1101(marcstate={}, base_frequency={:.2f}MHz)".format(
+        return "CC1101(marcstate={}, base_frequency={:.2f}MHz, modulation_format={})".format(
             self.get_main_radio_control_state_machine_state().name.lower(),
             self.get_base_frequency_hertz() / 10 ** 6,
+            self.get_modulation_format().name,
         )
 
     def _get_packet_length(self) -> int:
