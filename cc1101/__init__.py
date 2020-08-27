@@ -1,7 +1,11 @@
 import enum
+import logging
 import typing
 
 import spidev
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class CC1101:
@@ -65,27 +69,48 @@ class CC1101:
     def __init__(self) -> None:
         self._spi = spidev.SpiDev()
 
-    def _reset(self) -> None:
-        # TODO check if 0 required
-        assert self._spi.xfer([self._SPIAddress.SRES, 0]) == [0x0F, 0x0F]
+    @staticmethod
+    def _log_chip_status_byte(chip_status: int) -> None:
+        # see "10.1 Chip Status Byte" & "Table 23: Status Byte Summary"
+        _LOGGER.debug(
+            "chip status byte: CHIP_RDYn=%d STATE=%s FIFO_BYTES_AVAILBLE=%d",
+            chip_status >> 7,
+            bin((chip_status >> 4) & 0b111),
+            chip_status & 0b1111,
+        )
 
     def _read_burst(self, start_register: _SPIAddress, length: int) -> typing.List[int]:
         response = self._spi.xfer([start_register | self._READ_BURST] + [0] * length)
         assert len(response) == length + 1, response
-        assert response[0] == 0, response
+        self._log_chip_status_byte(response[0])
         return response[1:]
 
     def _read_status_register(self, register: _SPIAddress) -> int:
+        _LOGGER.debug("reading status register 0x%02x", register)
         values = self._read_burst(start_register=register, length=1)
         assert len(values) == 1, values
         return values[0]
 
+    def _command_strobe(self, register: _SPIAddress) -> None:
+        # see "10.4 Command Strobes"
+        _LOGGER.debug("sending command strobe 0x%02x", register)
+        response = self._spi.xfer([register | self._WRITE_SINGLE_BYTE])
+        assert len(response) == 1, response
+        self._log_chip_status_byte(response[0])
+
     def _write_burst(
         self, start_register: _SPIAddress, values: typing.List[int]
     ) -> None:
+        _LOGGER.debug(
+            "writing burst: start_register=0x%02x values=%s", start_register, values
+        )
         response = self._spi.xfer([start_register | self._WRITE_BURST] + values)
         assert len(response) == len(values) + 1, response
-        assert all(v == 0x0F for v in response), response  # TODO why?
+        self._log_chip_status_byte(response[0])
+        assert all(v == 0x0F for v in response[1:]), response  # TODO why?
+
+    def _reset(self) -> None:
+        self._command_strobe(self._SPIAddress.SRES)
 
     def __enter__(self) -> "CC1101":
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
