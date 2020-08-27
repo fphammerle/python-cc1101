@@ -36,7 +36,9 @@ class CC1101:
         FREQ2 = 0x0D
         FREQ1 = 0x0E
         FREQ0 = 0x0F
-        MDMCFG2 = 0x012
+        MDMCFG4 = 0x10
+        MDMCFG3 = 0x11
+        MDMCFG2 = 0x12
         MCSM0 = 0x18
         # > For register addresses in the range 0x30-0x3D,
         # > the burst bit is used to select between
@@ -144,6 +146,27 @@ class CC1101:
     def _reset(self) -> None:
         self._command_strobe(self._SPIAddress.SRES)
 
+    def _get_symbol_rate_exponent(self) -> int:
+        """
+        MDMCFG4.DRATE_E
+        """
+        return self._read_single_byte(self._SPIAddress.MDMCFG4) & 0b00001111
+
+    def _get_symbol_rate_mantissa(self) -> int:
+        """
+        MDMCFG3.DRATE_M
+        """
+        return self._read_single_byte(self._SPIAddress.MDMCFG3)
+
+    def get_symbol_rate_baud(self) -> float:
+        # see "12 Data Rate Programming"
+        return (
+            (256 + self._get_symbol_rate_mantissa())
+            * (2 ** self._get_symbol_rate_exponent())
+            * self._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ
+            / (2 ** 28)
+        )
+
     def get_modulation_format(self) -> ModulationFormat:
         mdmcfg2 = self._read_single_byte(self._SPIAddress.MDMCFG2)
         return self.ModulationFormat((mdmcfg2 >> 4) & 0b111)
@@ -238,9 +261,10 @@ class CC1101:
         )
 
     def __str__(self) -> str:
-        return "CC1101(marcstate={}, base_frequency={:.2f}MHz, modulation_format={})".format(
+        return "CC1101(marcstate={}, base_frequency={:.2f}MHz, symbol_rate={:.2f}kBaud, modulation_format={})".format(
             self.get_main_radio_control_state_machine_state().name.lower(),
             self.get_base_frequency_hertz() / 10 ** 6,
+            self.get_symbol_rate_baud() / 1000,
             self.get_modulation_format().name,
         )
 
