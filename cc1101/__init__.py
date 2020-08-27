@@ -32,6 +32,7 @@ class CC1101:
         # see "Table 45: SPI Address Space"
         # > The configuration registers on the CC1101 are
         # > located on SPI addresses from 0x00 to 0x2E.
+        PKTLEN = 0x06
         FREQ2 = 0x0D
         FREQ1 = 0x0E
         FREQ0 = 0x0F
@@ -46,17 +47,29 @@ class CC1101:
         # > one at a time. The status registers can only be
         # > read.
         SRES = 0x30
+        STX = 0x35
+        SFTX = 0x3B
         PARTNUM = 0x30
         VERSION = 0x31
         MARCSTATE = 0x35
+        # see "10.5 FIFO Access"
+        # > When the R/W-bit is zero, the TX FIFO is
+        # > accessed, and the RX FIFO is accessed when
+        # > the R/W-bit is one.
+        TXFIFO = 0x3F
 
     class MainRadioControlStateMachineState(enum.IntEnum):
         """
         MARCSTATE - Main Radio Control State Machine State
         """
 
-        # > Figure 13: Simplified State Diagram
+        # see "Figure 13: Simplified State Diagram"
+        # and "Figure 25: Complete Radio Control State Diagram"
         IDLE = 0x01
+        STARTCAL = 0x08  # after IDLE
+        BWBOOST = 0x09  # after STARTCAL
+        FS_LOCK = 0x0A
+        TX = 0x13
 
     # 29.3 Status Register Details
     _SUPPORTED_PARTNUM = 0
@@ -199,3 +212,44 @@ class CC1101:
             self.get_main_radio_control_state_machine_state().name.lower(),
             self.get_base_frequency_hertz() / 10 ** 6,
         )
+
+    def _get_packet_length(self) -> int:
+        """
+        packet length in fixed packet length mode,
+        maximum packet length in variable packet length mode.
+        """
+        return self._read_burst(start_register=self._SPIAddress.PKTLEN, length=1)[0]
+
+    def _flush_tx_fifo_buffer(self) -> str:
+        # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
+        _LOGGER.debug("flushing tx fifo buffer")
+        self._command_strobe(self._SPIAddress.SFTX)
+
+    def transmit(self, payload: typing.List[int]) -> None:
+        # see "15.2 Packet Format"
+        # > In variable packet length mode, [...]
+        # > The first byte written to the TXFIFO must be different from 0.
+        if payload[0] == 0:
+            raise ValueError(
+                "in variable packet length mode the first byte of payload must not be null"
+                + "\npayload: {}".format(payload)
+            )
+        marcstate = self.get_main_radio_control_state_machine_state()
+        if marcstate != self.MainRadioControlStateMachineState.IDLE:
+            raise Exception(
+                "device must be idle before transmission (current marcstate: {})".format(
+                    marcstate.name
+                )
+            )
+        max_packet_length = self._get_packet_length()
+        if len(payload) > max_packet_length:
+            raise ValueError(
+                "payload exceeds maximum payload length of {} bytes".format(
+                    max_packet_length
+                )
+                + "\npayload: {}".format(payload)
+            )
+        self._flush_tx_fifo_buffer()
+        self._write_burst(self._SPIAddress.TXFIFO, payload)
+        _LOGGER.info("transmitting %s", payload)
+        self._command_strobe(self._SPIAddress.STX)
