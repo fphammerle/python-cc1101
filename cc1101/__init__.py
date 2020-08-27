@@ -35,6 +35,7 @@ class CC1101:
         FREQ2 = 0x0D
         FREQ1 = 0x0E
         FREQ0 = 0x0F
+        MCSM0 = 0x18
         # > For register addresses in the range 0x30-0x3D,
         # > the burst bit is used to select between
         # > status registers when burst bit is one, and
@@ -131,6 +132,12 @@ class CC1101:
                     version, self._SUPPORTED_VERSION
                 )
             )
+        # 7:6 unused
+        # 5:4 FS_AUTOCAL: calibrate when going from IDLE to RX or TX
+        # 3:2 PO_TIMEOUT: default
+        # 1 PIN_CTRL_EN: default
+        # 0 XOSC_FORCE_ON: default
+        self._write_burst(self._SPIAddress.MCSM0, [0b010100])
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != self.MainRadioControlStateMachineState.IDLE:
             raise ValueError("expected marcstate idle (actual: {})".format(marcstate))
