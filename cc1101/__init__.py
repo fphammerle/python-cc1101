@@ -1,5 +1,6 @@
 import enum
 import logging
+import math
 import typing
 
 import spidev
@@ -152,11 +153,20 @@ class CC1101:
         """
         return self._read_single_byte(self._SPIAddress.MDMCFG4) & 0b00001111
 
+    def _set_symbol_rate_exponent(self, exponent: int):
+        mdmcfg4 = self._read_single_byte(self._SPIAddress.MDMCFG4)
+        mdmcfg4 &= 0b11110000
+        mdmcfg4 |= exponent
+        self._write_burst(start_register=self._SPIAddress.MDMCFG4, values=[mdmcfg4])
+
     def _get_symbol_rate_mantissa(self) -> int:
         """
         MDMCFG3.DRATE_M
         """
         return self._read_single_byte(self._SPIAddress.MDMCFG3)
+
+    def _set_symbol_rate_mantissa(self, mantissa: int) -> int:
+        self._write_burst(start_register=self._SPIAddress.MDMCFG3, values=[mantissa])
 
     @classmethod
     def _symbol_rate_floating_point_to_real(cls, mantissa: int, exponent: int) -> float:
@@ -168,11 +178,34 @@ class CC1101:
             / (2 ** 28)
         )
 
+    @classmethod
+    def _symbol_rate_real_to_floating_point(cls, real: float) -> typing.Tuple[int, int]:
+        # see "12 Data Rate Programming"
+        assert real > 0, real
+        exponent = math.floor(
+            math.log2(real / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ) + 20
+        )
+        mantissa = round(
+            real * 2 ** 28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2 ** exponent
+            - 256
+        )
+        if mantissa == 256:
+            exponent += 1
+            mantissa = 0
+        assert 0 < exponent <= 2 ** 4, exponent
+        assert mantissa <= 2 ** 8, mantissa
+        return mantissa, exponent
+
     def get_symbol_rate_baud(self) -> float:
         return self._symbol_rate_floating_point_to_real(
             mantissa=self._get_symbol_rate_mantissa(),
             exponent=self._get_symbol_rate_exponent(),
         )
+
+    def set_symbol_rate_baud(self, real: float) -> None:
+        mantissa, exponent = self._symbol_rate_real_to_floating_point(real)
+        self._set_symbol_rate_mantissa(mantissa)
+        self._set_symbol_rate_exponent(exponent)
 
     def get_modulation_format(self) -> ModulationFormat:
         mdmcfg2 = self._read_single_byte(self._SPIAddress.MDMCFG2)
