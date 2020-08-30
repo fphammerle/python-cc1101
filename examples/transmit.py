@@ -8,8 +8,8 @@ logging.basicConfig(level=logging.INFO)
 
 with cc1101.CC1101() as transceiver:
     print("defaults:", transceiver)
-    transceiver.set_base_frequency_hertz(433e6)
-    transceiver.set_symbol_rate_baud(1000)
+    transceiver.set_base_frequency_hertz(433.5e6)
+    transceiver.set_symbol_rate_baud(600)
     print(transceiver)
     print("state", transceiver.get_marc_state().name)
     print("base frequency", transceiver.get_base_frequency_hertz(), "Hz")
