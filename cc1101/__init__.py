@@ -314,6 +314,22 @@ class CC1101:
         """
         return self._read_single_byte(ConfigurationRegisterAddress.PKTLEN)
 
+    def get_configuration_register_values(
+        self,
+        start_register: ConfigurationRegisterAddress = min(
+            ConfigurationRegisterAddress
+        ),
+        end_register: ConfigurationRegisterAddress = max(ConfigurationRegisterAddress),
+    ) -> typing.Dict[ConfigurationRegisterAddress, int]:
+        assert start_register <= end_register, (start_register, end_register)
+        values = self._read_burst(
+            start_register=start_register, length=end_register - start_register + 1
+        )
+        return {
+            ConfigurationRegisterAddress(start_register + i): v
+            for i, v in enumerate(values)
+        }
+
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
         _LOGGER.debug("flushing tx fifo buffer")
