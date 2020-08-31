@@ -36,6 +36,16 @@ class CC1101:
     _READ_SINGLE_BYTE = 0x80
     _READ_BURST = 0xC0
 
+    class _TransceiveMode(enum.IntEnum):
+        """
+        PKTCTRL0.PKT_FORMAT
+        """
+
+        FIFO = 0b00
+        SYNCHRONOUS_SERIAL = 0b01
+        RANDOM_TRANSMISSION = 0b10
+        ASYNCHRONOUS_SERIAL = 0b11
+
     class ModulationFormat(enum.IntEnum):
         """
         MDMCFG2.MOD_FORMAT
@@ -198,6 +208,7 @@ class CC1101:
         )
 
     def set_symbol_rate_baud(self, real: float) -> None:
+        # > The data rate can be set from 0.6 kBaud to 500 kBaud [...]
         mantissa, exponent = self._symbol_rate_real_to_floating_point(real)
         self._set_symbol_rate_mantissa(mantissa)
         self._set_symbol_rate_exponent(exponent)
@@ -329,6 +340,10 @@ class CC1101:
             ConfigurationRegisterAddress(start_register + i): v
             for i, v in enumerate(values)
         }
+
+    def _get_transceive_mode(self) -> _TransceiveMode:
+        pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
+        return self._TransceiveMode((pktctrl0 >> 4) & 0b11)
 
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
