@@ -1,3 +1,4 @@
+import contextlib
 import enum
 import logging
 import math
@@ -35,6 +36,9 @@ class CC1101:
     _WRITE_BURST = 0x40
     _READ_SINGLE_BYTE = 0x80
     _READ_BURST = 0xC0
+
+    class Pin(enum.Enum):
+        GDO0 = "GDO0"
 
     class _TransceiveMode(enum.IntEnum):
         """
@@ -387,6 +391,15 @@ class CC1101:
         pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
         return self._TransceiveMode((pktctrl0 >> 4) & 0b11)
 
+    def _set_transceive_mode(self, mode: _TransceiveMode) -> None:
+        _LOGGER.info("changing transceive mode to %s", mode.name)
+        pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
+        pktctrl0 &= ~0b00110000
+        pktctrl0 |= mode << 4
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
+        )
+
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
         _LOGGER.debug("flushing tx fifo buffer")
@@ -420,3 +433,24 @@ class CC1101:
         self._write_burst(FIFORegisterAddress.TX, payload)
         _LOGGER.info("transmitting %s", payload)
         self._command_strobe(StrobeAddress.STX)
+
+    @contextlib.contextmanager
+    def asynchronous_transmission(self) -> typing.Iterator[Pin]:
+        """
+        see "27.1 Asynchronous Serial Operation"
+
+        >>> with cc1101.CC1101() as transceiver:
+        >>>     transceiver.set_base_frequency_hertz(433.92e6)
+        >>>     transceiver.set_symbol_rate_baud(600)
+        >>>     print(transceiver)
+        >>>     with transceiver.asynchronous_transmission():
+        >>>         # send digital signal to GDO0 pin
+        """
+        self._set_transceive_mode(self._TransceiveMode.ASYNCHRONOUS_SERIAL)
+        self._command_strobe(StrobeAddress.STX)
+        try:
+            # > In TX, the GDO0 pin is used for data input (TX data).
+            yield self.Pin.GDO0
+        finally:
+            self._command_strobe(StrobeAddress.SIDLE)
+            self._set_transceive_mode(self._TransceiveMode.FIFO)
