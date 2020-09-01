@@ -143,7 +143,7 @@ class CC1101:
         response = self._spi.xfer([start_register | self._WRITE_BURST] + values)
         assert len(response) == len(values) + 1, response
         self._log_chip_status_byte(response[0])
-        assert all(v == 0x0F for v in response[1:]), response  # TODO why?
+        assert all(v == response[0] for v in response[1:]), response
 
     def _reset(self) -> None:
         self._command_strobe(StrobeAddress.SRES)
@@ -223,6 +223,29 @@ class CC1101:
         mdmcfg2 |= modulation_format << 4
         self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
 
+    def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
+        """
+        FREND0.PA_POWER
+
+        > This value is an index to the PATABLE,
+        > which can be programmed with up to 8 different PA settings.
+
+        > In OOK/ASK mode, this selects the PATABLE index to use
+        > when transmitting a '1'.
+        > PATABLE index zero is used in OOK/ASK when transmitting a '0'.
+        > The PATABLE settings from index 0 to the PA_POWER value are
+        > used for > ASK TX shaping, [...]
+        
+        see "Figure 32: Shaping of ASK Signal"
+
+        > If OOK modulation is used, the logic 0 and logic 1 power levels
+        > shall be programmed to index 0 and 1 respectively.
+        """
+        frend0 = self._read_single_byte(ConfigurationRegisterAddress.FREND0)
+        frend0 &= 0b000
+        frend0 |= setting_index
+        self._write_burst(ConfigurationRegisterAddress.FREND0, [setting_index])
+
     def __enter__(self) -> "CC1101":
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
         self._spi.open(0, 0)
@@ -244,6 +267,7 @@ class CC1101:
             )
         # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
         self._set_modulation_format(self.ModulationFormat.ASK_OOK)
+        self._set_power_amplifier_setting_index(1)
         # 7:6 unused
         # 5:4 FS_AUTOCAL: calibrate when going from IDLE to RX or TX
         # 3:2 PO_TIMEOUT: default
