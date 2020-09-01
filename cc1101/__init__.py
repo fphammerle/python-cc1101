@@ -268,6 +268,7 @@ class CC1101:
         # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
         self._set_modulation_format(self.ModulationFormat.ASK_OOK)
         self._set_power_amplifier_setting_index(1)
+        self._disable_data_whitening()
         # 7:6 unused
         # 5:4 FS_AUTOCAL: calibrate when going from IDLE to RX or TX
         # 3:2 PO_TIMEOUT: default
@@ -364,6 +365,23 @@ class CC1101:
             ConfigurationRegisterAddress(start_register + i): v
             for i, v in enumerate(values)
         }
+
+    def _disable_data_whitening(self):
+        """
+        PKTCTRL0.WHITE_DATA
+
+        see "15.1 Data Whitening"
+
+        > By setting PKTCTRL0.WHITE_DATA=1 [default],
+        > all data, except the preamble and the sync word
+        > will be XOR-ed with a 9-bit pseudo-random (PN9)
+        > sequence before being transmitted.
+        """
+        pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
+        pktctrl0 &= 0b10111111
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
+        )
 
     def _get_transceive_mode(self) -> _TransceiveMode:
         pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
