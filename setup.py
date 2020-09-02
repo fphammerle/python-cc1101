@@ -49,11 +49,11 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: POSIX :: Linux",
-        # TODO .github/workflows/python.yml
-        # "Programming Language :: Python :: 3.5",
-        # "Programming Language :: Python :: 3.6",
-        # "Programming Language :: Python :: 3.7",
-        # "Programming Language :: Python :: 3.8",
+        # .github/workflows/python.yml
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Home Automation",
         "Topic :: Communications",
     ],
