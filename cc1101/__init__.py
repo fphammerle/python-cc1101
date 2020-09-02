@@ -429,14 +429,14 @@ class CC1101:
         _LOGGER.debug("flushing tx fifo buffer")
         self._command_strobe(StrobeAddress.SFTX)
 
-    def transmit(self, payload: typing.List[int]) -> None:
+    def transmit(self, payload: bytes) -> None:
         # see "15.2 Packet Format"
         # > In variable packet length mode, [...]
         # > The first byte written to the TXFIFO must be different from 0.
         if payload[0] == 0:
             raise ValueError(
                 "in variable packet length mode the first byte of payload must not be null"
-                + "\npayload: {}".format(payload)
+                + "\npayload: {!r}".format(payload)
             )
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != MainRadioControlStateMachineState.IDLE:
@@ -451,11 +451,15 @@ class CC1101:
                 "payload exceeds maximum payload length of {} bytes".format(
                     max_packet_length
                 )
-                + "\npayload: {}".format(payload)
+                + "\npayload: {!r}".format(payload)
             )
         self._flush_tx_fifo_buffer()
-        self._write_burst(FIFORegisterAddress.TX, payload)
-        _LOGGER.info("transmitting %s", payload)
+        self._write_burst(FIFORegisterAddress.TX, list(payload))
+        _LOGGER.info(
+            "transmitting 0x%s (%r)",
+            "".join("{:02x}".format(b) for b in payload),
+            payload,
+        )
         self._command_strobe(StrobeAddress.STX)
 
     @contextlib.contextmanager
