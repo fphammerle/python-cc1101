@@ -227,6 +227,16 @@ class CC1101:
         mdmcfg2 |= modulation_format << 4
         self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
 
+    def enable_manchester_code(self) -> None:
+        """
+        MDMCFG2.MANCHESTER_EN
+
+        Enable manchester encoding & decoding.
+        """
+        mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
+        mdmcfg2 |= 0b1000
+        self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
+
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
         """
         FREND0.PA_POWER
