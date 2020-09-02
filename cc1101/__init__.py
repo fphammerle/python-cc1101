@@ -12,6 +12,7 @@ from cc1101.addresses import (
     StatusRegisterAddress,
     FIFORegisterAddress,
 )
+from cc1101.options import SyncMode
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -237,6 +238,21 @@ class CC1101:
         mdmcfg2 |= 0b1000
         self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
 
+    def get_sync_mode(self) -> SyncMode:
+        mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
+        return SyncMode(mdmcfg2 & 0b11)
+
+    def set_sync_mode(self, mode: SyncMode) -> None:
+        """
+        MDMCFG2.SYNC_MODE
+
+        see "14.3 Byte Synchronization"
+        """
+        mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
+        mdmcfg2 &= 0b11111100
+        mdmcfg2 |= mode
+        self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
+
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
         """
         FREND0.PA_POWER
@@ -350,11 +366,12 @@ class CC1101:
         )
 
     def __str__(self) -> str:
-        return "CC1101(marcstate={}, base_frequency={:.2f}MHz, symbol_rate={:.2f}kBaud, modulation_format={})".format(
+        return "CC1101(marcstate={}, base_frequency={:.2f}MHz, symbol_rate={:.2f}kBaud, modulation_format={}, sync_mode={})".format(
             self.get_main_radio_control_state_machine_state().name.lower(),
             self.get_base_frequency_hertz() / 10 ** 6,
             self.get_symbol_rate_baud() / 1000,
             self.get_modulation_format().name,
+            self.get_sync_mode().name,
         )
 
     def _get_packet_length(self) -> int:
