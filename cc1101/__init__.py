@@ -319,7 +319,7 @@ class CC1101:
             raise ValueError("expected marcstate idle (actual: {})".format(marcstate))
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> typing.Literal[False]:
+    def __exit__(self, exc_type, exc_value, traceback):  # -> typing.Literal[False]
         # https://docs.python.org/3/reference/datamodel.html#object.__exit__
         self._spi.close()
         return False
