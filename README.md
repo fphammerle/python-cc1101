@@ -4,7 +4,7 @@
 [![Last Release](https://img.shields.io/pypi/v/cc1101.svg)](https://pypi.org/project/cc1101/#history)
 [![Compatible Python Versions](https://img.shields.io/pypi/pyversions/cc1101.svg)](https://pypi.org/project/cc1101/)
 
-Python Library for [CC1101 Transceivers](https://www.ti.com/product/CC1101)
+Python Library to Transmit RF Signals via [CC1101 Transceivers](https://www.ti.com/product/CC1101)
 
 ## Setup
 
@@ -51,3 +51,5 @@ In case a `PermissionError` gets raised,
 check the permissions of `/dev/spidev*`.
 You'll probably need `sudo usermod -a -G spi $USER`,
 followed by a re-login.
+
+CC1101's docs: https://www.ti.com/lit/ds/symlink/cc1101.pdf
