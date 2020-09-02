@@ -358,13 +358,18 @@ class CC1101:
         )
 
     def __str__(self) -> str:
-        return "CC1101(marcstate={}, base_frequency={:.2f}MHz, symbol_rate={:.2f}kBaud, modulation_format={}, sync_mode={})".format(
-            self.get_main_radio_control_state_machine_state().name.lower(),
-            self.get_base_frequency_hertz() / 10 ** 6,
-            self.get_symbol_rate_baud() / 1000,
-            self.get_modulation_format().name,
-            self.get_sync_mode().name,
+        attrs = (
+            "marcstate={}".format(
+                self.get_main_radio_control_state_machine_state().name.lower()
+            ),
+            "base_frequency={:.2f}MHz".format(
+                self.get_base_frequency_hertz() / 10 ** 6
+            ),
+            "symbol_rate={:.2f}kBaud".format(self.get_symbol_rate_baud() / 1000),
+            "modulation_format={}".format(self.get_modulation_format().name),
+            "sync_mode={}".format(self.get_sync_mode().name),
         )
+        return "CC1101({})".format(", ".join(attrs))
 
     def _get_packet_length(self) -> int:
         """
