@@ -325,7 +325,7 @@ class CC1101:
         return False
 
     def get_main_radio_control_state_machine_state(
-        self
+        self,
     ) -> MainRadioControlStateMachineState:
         return MainRadioControlStateMachineState(
             self._read_status_register(StatusRegisterAddress.MARCSTATE)

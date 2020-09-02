@@ -1,0 +1,57 @@
+# sync with https://github.com/fphammerle/ical2vdir/blob/master/.github/workflows/python.yml
+
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions
+
+# shown in badge
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/configuring-a-workflow#adding-a-workflow-status-badge-to-your-repository
+name: tests
+
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: '0 20 * * 5'
+
+jobs:
+  code-format:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python-version:
+        - 3.8
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: pip install --upgrade pipenv==2020.8.13
+    - run: pipenv install --python "$PYTHON_VERSION" --deploy --dev
+      env:
+        PYTHON_VERSION: ${{ matrix.python-version }}
+    - run: pipenv graph
+    - run: pipenv run black --check .
+  tests:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python-version:
+        - 3.5
+        - 3.6
+        - 3.7
+        - 3.8
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: pip install --upgrade pipenv==2020.8.13
+    - run: pipenv install --python "$PYTHON_VERSION" --deploy --dev
+      env:
+        PYTHON_VERSION: ${{ matrix.python-version }}
+    - run: pipenv graph
+    - run: pipenv run pytest
+    - run: pipenv run pylint --load-plugins=pylint_import_requirements cc1101
+    # https://github.com/PyCQA/pylint/issues/352
+    - run: pipenv run pylint tests/*
+    - run: pipenv run mypy cc1101 tests

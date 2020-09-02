@@ -1,0 +1,9 @@
+[MASTER]
+
+extension-pkg-whitelist = spidev
+
+[MESSAGE CONTROL]
+
+disable = missing-class-docstring,
+          missing-function-docstring,
+          missing-module-docstring

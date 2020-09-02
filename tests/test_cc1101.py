@@ -19,6 +19,8 @@ import pytest
 
 import cc1101
 
+# pylint: disable=protected-access
+
 _FREQUENCY_CONTROL_WORD_HERTZ_PARAMS = [
     ([0x10, 0xA7, 0x62], 433000000),
     ([0x10, 0xAB, 0x85], 433420000),
