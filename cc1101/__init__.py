@@ -18,6 +18,35 @@ from cc1101.options import SyncMode, ModulationFormat
 _LOGGER = logging.getLogger(__name__)
 
 
+class Pin(enum.Enum):
+    GDO0 = "GDO0"
+
+
+class _TransceiveMode(enum.IntEnum):
+    """
+    PKTCTRL0.PKT_FORMAT
+    """
+
+    FIFO = 0b00
+    SYNCHRONOUS_SERIAL = 0b01
+    RANDOM_TRANSMISSION = 0b10
+    ASYNCHRONOUS_SERIAL = 0b11
+
+
+class MainRadioControlStateMachineState(enum.IntEnum):
+    """
+    MARCSTATE - Main Radio Control State Machine State
+    """
+
+    # see "Figure 13: Simplified State Diagram"
+    # and "Figure 25: Complete Radio Control State Diagram"
+    IDLE = 0x01
+    STARTCAL = 0x08  # after IDLE
+    BWBOOST = 0x09  # after STARTCAL
+    FS_LOCK = 0x0A
+    TX = 0x13
+
+
 class CC1101:
 
     # > All transfers on the SPI interface are done
@@ -37,32 +66,6 @@ class CC1101:
     _WRITE_BURST = 0x40
     _READ_SINGLE_BYTE = 0x80
     _READ_BURST = 0xC0
-
-    class Pin(enum.Enum):
-        GDO0 = "GDO0"
-
-    class _TransceiveMode(enum.IntEnum):
-        """
-        PKTCTRL0.PKT_FORMAT
-        """
-
-        FIFO = 0b00
-        SYNCHRONOUS_SERIAL = 0b01
-        RANDOM_TRANSMISSION = 0b10
-        ASYNCHRONOUS_SERIAL = 0b11
-
-    class MainRadioControlStateMachineState(enum.IntEnum):
-        """
-        MARCSTATE - Main Radio Control State Machine State
-        """
-
-        # see "Figure 13: Simplified State Diagram"
-        # and "Figure 25: Complete Radio Control State Diagram"
-        IDLE = 0x01
-        STARTCAL = 0x08  # after IDLE
-        BWBOOST = 0x09  # after STARTCAL
-        FS_LOCK = 0x0A
-        TX = 0x13
 
     # 29.3 Status Register Details
     _SUPPORTED_PARTNUM = 0
@@ -295,7 +298,7 @@ class CC1101:
         # 0 XOSC_FORCE_ON: default
         self._write_burst(ConfigurationRegisterAddress.MCSM0, [0b010100])
         marcstate = self.get_main_radio_control_state_machine_state()
-        if marcstate != self.MainRadioControlStateMachineState.IDLE:
+        if marcstate != MainRadioControlStateMachineState.IDLE:
             raise ValueError("expected marcstate idle (actual: {})".format(marcstate))
         return self
 
@@ -307,7 +310,7 @@ class CC1101:
     def get_main_radio_control_state_machine_state(
         self
     ) -> MainRadioControlStateMachineState:
-        return self.MainRadioControlStateMachineState(
+        return MainRadioControlStateMachineState(
             self._read_status_register(StatusRegisterAddress.MARCSTATE)
         )
 
@@ -405,7 +408,7 @@ class CC1101:
 
     def _get_transceive_mode(self) -> _TransceiveMode:
         pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
-        return self._TransceiveMode((pktctrl0 >> 4) & 0b11)
+        return _TransceiveMode((pktctrl0 >> 4) & 0b11)
 
     def _set_transceive_mode(self, mode: _TransceiveMode) -> None:
         _LOGGER.info("changing transceive mode to %s", mode.name)
@@ -431,7 +434,7 @@ class CC1101:
                 + "\npayload: {}".format(payload)
             )
         marcstate = self.get_main_radio_control_state_machine_state()
-        if marcstate != self.MainRadioControlStateMachineState.IDLE:
+        if marcstate != MainRadioControlStateMachineState.IDLE:
             raise Exception(
                 "device must be idle before transmission (current marcstate: {})".format(
                     marcstate.name
@@ -462,11 +465,11 @@ class CC1101:
         >>>     with transceiver.asynchronous_transmission():
         >>>         # send digital signal to GDO0 pin
         """
-        self._set_transceive_mode(self._TransceiveMode.ASYNCHRONOUS_SERIAL)
+        self._set_transceive_mode(_TransceiveMode.ASYNCHRONOUS_SERIAL)
         self._command_strobe(StrobeAddress.STX)
         try:
             # > In TX, the GDO0 pin is used for data input (TX data).
-            yield self.Pin.GDO0
+            yield Pin.GDO0
         finally:
             self._command_strobe(StrobeAddress.SIDLE)
-            self._set_transceive_mode(self._TransceiveMode.FIFO)
+            self._set_transceive_mode(_TransceiveMode.FIFO)

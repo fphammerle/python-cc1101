@@ -16,7 +16,7 @@ class ModulationFormat(enum.IntEnum):
 class SyncMode(enum.IntEnum):
     """
     MDMCFG2.SYNC_MODE
-    
+
     see "14.3 Byte Synchronization"
     """
 
