@@ -12,7 +12,7 @@ from cc1101.addresses import (
     StatusRegisterAddress,
     FIFORegisterAddress,
 )
-from cc1101.options import SyncMode
+from cc1101.options import SyncMode, ModulationFormat
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,17 +50,6 @@ class CC1101:
         SYNCHRONOUS_SERIAL = 0b01
         RANDOM_TRANSMISSION = 0b10
         ASYNCHRONOUS_SERIAL = 0b11
-
-    class ModulationFormat(enum.IntEnum):
-        """
-        MDMCFG2.MOD_FORMAT
-        """
-
-        FSK2 = 0b000
-        GFSK = 0b001
-        ASK_OOK = 0b011
-        FSK4 = 0b100
-        MSK = 0b111
 
     class MainRadioControlStateMachineState(enum.IntEnum):
         """
@@ -220,7 +209,7 @@ class CC1101:
 
     def get_modulation_format(self) -> ModulationFormat:
         mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
-        return self.ModulationFormat((mdmcfg2 >> 4) & 0b111)
+        return ModulationFormat((mdmcfg2 >> 4) & 0b111)
 
     def _set_modulation_format(self, modulation_format: ModulationFormat) -> None:
         mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
@@ -265,7 +254,7 @@ class CC1101:
         > PATABLE index zero is used in OOK/ASK when transmitting a '0'.
         > The PATABLE settings from index 0 to the PA_POWER value are
         > used for > ASK TX shaping, [...]
-        
+
         see "Figure 32: Shaping of ASK Signal"
 
         > If OOK modulation is used, the logic 0 and logic 1 power levels
@@ -296,7 +285,7 @@ class CC1101:
                 )
             )
         # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
-        self._set_modulation_format(self.ModulationFormat.ASK_OOK)
+        self._set_modulation_format(ModulationFormat.ASK_OOK)
         self._set_power_amplifier_setting_index(1)
         self._disable_data_whitening()
         # 7:6 unused

@@ -1,6 +1,18 @@
 import enum
 
 
+class ModulationFormat(enum.IntEnum):
+    """
+    MDMCFG2.MOD_FORMAT
+    """
+
+    FSK2 = 0b000
+    GFSK = 0b001
+    ASK_OOK = 0b011
+    FSK4 = 0b100
+    MSK = 0b111
+
+
 class SyncMode(enum.IntEnum):
     """
     MDMCFG2.SYNC_MODE
