@@ -3,7 +3,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-[dev-packages]
+[packages]
 cc1101 = {editable = true,path = "."}
 # > $ cat /etc/issue
 # > Raspbian GNU/Linux 10 \n \l
@@ -13,20 +13,22 @@ cc1101 = {editable = true,path = "."}
 # > 3.4
 # https://pypi.org/project/spidev/3.4/
 spidev = {version = "3.4"}
+
+[dev-packages]
 # black requires python>=3.6
 # https://github.com/psf/black/commit/e74117f172e29e8a980e2c9de929ad50d3769150#diff-2eeaed663bd0d25b7e608891384b7298R51
-black = {version = "==19.10b0", markers="python_version >= '3.6'"}
+black = {version = "==20.8b1", markers = "python_version >= '3.6'"}
 mypy = "*"
-# workaround https://github.com/pytest-dev/pytest/issues/3953
-pathlib2 = {version = "*", markers="python_version < '3.6'"}
 pylint = "*"
 pylint-import-requirements = "*"
 pytest = "*"
-# zipp v2.0.0 dropped support for python3.5
+
+# python3.5 compatibility
+isort = "<5"
+# workaround https://github.com/pytest-dev/pytest/issues/3953
+pathlib2 = {version = "*", markers="python_version < '3.6'"}
 # https://github.com/jaraco/zipp/commit/05a3c52b4d41690e0471a2e283cffb500dc0329a
 zipp = "<2"
-# isort v5 dropped support for python3.5
-isort = "<5"
 
 [requires]
 python_version = "3"
