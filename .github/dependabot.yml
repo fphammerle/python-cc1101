@@ -1,0 +1,16 @@
+# sync with https://github.com/fphammerle/ical2vdir/blob/master/.github/dependabot.yml
+
+version: 2
+
+updates:
+- # > Dependabot also supports the following package managers: [...]
+  # > - pipenv, pip-compile, and poetry (specify pip)
+  package-ecosystem: pip
+  directory: /
+  # avoid changes in Pipfile breaking python3.5 compatibility
+  versioning-strategy: lockfile-only
+  schedule:
+    interval: weekly
+    day: friday
+
+# https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/configuration-options-for-dependency-updates
