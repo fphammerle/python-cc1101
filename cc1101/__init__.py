@@ -389,21 +389,10 @@ class CC1101:
                 "≤"
                 if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
                 else "=",
-                self._get_packet_length(),
+                self.get_packet_length(),
             ),
         )
         return "CC1101({})".format(", ".join(attrs))
-
-    def _get_packet_length(self) -> int:
-        """
-        packet length in fixed packet length mode,
-        maximum packet length in variable packet length mode.
-
-        > In variable packet length mode, [...]
-        > any packet received with a length byte
-        > with a value greater than PKTLEN will be discarded.
-        """
-        return self._read_single_byte(ConfigurationRegisterAddress.PKTLEN)
 
     def get_configuration_register_values(
         self,
@@ -420,6 +409,19 @@ class CC1101:
             ConfigurationRegisterAddress(start_register + i): v
             for i, v in enumerate(values)
         }
+
+    def get_packet_length(self) -> int:
+        """
+        PKTLEN
+
+        Packet length in fixed packet length mode,
+        maximum packet length in variable packet length mode.
+
+        > In variable packet length mode, [...]
+        > any packet received with a length byte
+        > with a value greater than PKTLEN will be discarded.
+        """
+        return self._read_single_byte(ConfigurationRegisterAddress.PKTLEN)
 
     def _disable_data_whitening(self):
         """
@@ -496,9 +498,31 @@ class CC1101:
         # see "15.2 Packet Format"
         # > In variable packet length mode, [...]
         # > The first byte written to the TXFIFO must be different from 0.
-        if payload[0] == 0:
+        packet_length_mode = self.get_packet_length_mode()
+        packet_length = self.get_packet_length()
+        if packet_length_mode == PacketLengthMode.VARIABLE:
+            if not payload:
+                raise ValueError("empty payload {!r}".format(payload))
+            if payload[0] == 0:
+                raise ValueError(
+                    "in variable packet length mode the first byte of the payload must not be null"
+                    + "\npayload: {!r}".format(payload)
+                )
+            if len(payload) > packet_length:
+                raise ValueError(
+                    "payload exceeds maximum payload length of {} bytes".format(
+                        packet_length
+                    )
+                    + "\nsee .get_packet_length()"
+                    + "\npayload: {!r}".format(payload)
+                )
+        elif (
+            packet_length_mode == PacketLengthMode.FIXED
+            and len(payload) != packet_length
+        ):
             raise ValueError(
-                "in variable packet length mode the first byte of payload must not be null"
+                "expected payload length of {} bytes, got {}"
+                + "\nsee .set_packet_length_mode() and .get_packet_length()"
                 + "\npayload: {!r}".format(payload)
             )
         marcstate = self.get_main_radio_control_state_machine_state()
@@ -507,14 +531,6 @@ class CC1101:
                 "device must be idle before transmission (current marcstate: {})".format(
                     marcstate.name
                 )
-            )
-        max_packet_length = self._get_packet_length()
-        if len(payload) > max_packet_length:
-            raise ValueError(
-                "payload exceeds maximum payload length of {} bytes".format(
-                    max_packet_length
-                )
-                + "\npayload: {!r}".format(payload)
             )
         self._flush_tx_fifo_buffer()
         self._write_burst(FIFORegisterAddress.TX, list(payload))
