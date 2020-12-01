@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.1.0] - 2020-12-01
 ### Added
 - method `disable_checksum()` to disable automatic CRC sum
   appending in TX mode and checking in RX mode
@@ -22,5 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - disabled data whitening
 - automatic calibration
 
-[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/fphammerle/python-cc1101/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/fphammerle/python-cc1101/releases/tag/v1.0.0
