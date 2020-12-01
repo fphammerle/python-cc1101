@@ -29,7 +29,7 @@ from cc1101.addresses import (
     StatusRegisterAddress,
     FIFORegisterAddress,
 )
-from cc1101.options import SyncMode, ModulationFormat
+from cc1101.options import PacketLengthMode, SyncMode, ModulationFormat
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -385,6 +385,12 @@ class CC1101:
             "symbol_rate={:.2f}kBaud".format(self.get_symbol_rate_baud() / 1000),
             "modulation_format={}".format(self.get_modulation_format().name),
             "sync_mode={}".format(self.get_sync_mode().name),
+            "packet_length{}{}".format(
+                "≤"
+                if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
+                else "=",
+                self._get_packet_length(),
+            ),
         )
         return "CC1101({})".format(", ".join(attrs))
 
@@ -392,6 +398,10 @@ class CC1101:
         """
         packet length in fixed packet length mode,
         maximum packet length in variable packet length mode.
+
+        > In variable packet length mode, [...]
+        > any packet received with a length byte
+        > with a value greater than PKTLEN will be discarded.
         """
         return self._read_single_byte(ConfigurationRegisterAddress.PKTLEN)
 
@@ -456,6 +466,18 @@ class CC1101:
             start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
         )
 
+    def get_packet_length_mode(self) -> PacketLengthMode:
+        pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
+        return PacketLengthMode(pktctrl0 & 0b11)
+
+    def set_packet_length_mode(self, mode: PacketLengthMode) -> None:
+        pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
+        pktctrl0 &= 0b11111100
+        pktctrl0 |= mode
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
+        )
+
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
         _LOGGER.debug("flushing tx fifo buffer")
@@ -463,7 +485,8 @@ class CC1101:
 
     def transmit(self, payload: bytes) -> None:
         """
-        > [...], the packet length is configured by the first byte [...].
+        > In variable packet length mode [.set/get_packet_length_mode()],
+        > the packet length is configured by the first byte [...].
         > The packet length is defined as the payload data,
         > excluding the length byte and the optional CRC.
         from "15.2 Packet Format"
