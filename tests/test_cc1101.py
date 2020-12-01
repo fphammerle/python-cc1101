@@ -99,6 +99,34 @@ def test_set_packet_length_bytes_fail(transceiver, packet_length):
 
 
 @pytest.mark.parametrize(
+    ("pktctrl0_before", "pktctrl0_after"),
+    (
+        # unchanged
+        (0b00000000, 0b00000000),
+        (0b00010000, 0b00010000),
+        (0b00010001, 0b00010001),
+        (0b01000000, 0b01000000),
+        (0b01000010, 0b01000010),
+        (0b01110000, 0b01110000),
+        (0b01110010, 0b01110010),
+        # disabled
+        (0b00010100, 0b00010000),
+        (0b01000100, 0b01000000),
+        (0b01000110, 0b01000010),
+        (0b01110110, 0b01110010),
+    ),
+)
+def test_disable_checksum(transceiver, pktctrl0_before, pktctrl0_after):
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=pktctrl0_before
+    ):
+        transceiver.disable_checksum()
+    xfer_mock.assert_called_once_with([0x08 | 0x40, pktctrl0_after])
+
+
+@pytest.mark.parametrize(
     ("pktctrl0", "expected_mode"),
     (
         (0b00000000, cc1101.options.PacketLengthMode.FIXED),
