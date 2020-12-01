@@ -4,6 +4,7 @@
 [![CI Pipeline Status](https://github.com/fphammerle/python-cc1101/workflows/tests/badge.svg)](https://github.com/fphammerle/python-cc1101/actions)
 [![Last Release](https://img.shields.io/pypi/v/cc1101.svg)](https://pypi.org/project/cc1101/#history)
 [![Compatible Python Versions](https://img.shields.io/pypi/pyversions/cc1101.svg)](https://pypi.org/project/cc1101/)
+[![DOI](https://zenodo.org/badge/292333844.svg)](https://zenodo.org/badge/latestdoi/292333844)
 
 Python Library to Transmit RF Signals via [CC1101 Transceivers](https://www.ti.com/product/CC1101)
 
