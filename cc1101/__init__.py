@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import collections
 import contextlib
 import enum
 import logging
@@ -65,6 +66,44 @@ class MainRadioControlStateMachineState(enum.IntEnum):
     RXFIFO_OVERFLOW = 0x11
     TX = 0x13
     # TXFIFO_UNDERFLOW = 0x16
+
+
+class _ReceivedPacket:  # unstable
+
+    # "Table 31: Typical RSSI_offset Values"
+    _RSSI_OFFSET_dB = 74
+
+    def __init__(
+        self,
+        data: bytes,
+        rssi_index: int,
+        checksum_valid: bool,
+        link_quality_indicator: int,  # 7bit
+    ):
+        self.data = data
+        self._rssi_index = rssi_index
+        assert 0 <= rssi_index < (1 << 8), rssi_index
+        self.checksum_valid = checksum_valid
+        self.link_quality_indicator = link_quality_indicator
+        assert 0 <= link_quality_indicator < (1 << 7), link_quality_indicator
+
+    @property
+    def rssi_dbm(self) -> float:
+        """
+        Estimated Received Signal Strength Indicator (RSSI) in dBm
+
+        see section "17.3 RSSI"
+        """
+        if self._rssi_index >= 128:
+            return (self._rssi_index - 256) / 2 - self._RSSI_OFFSET_dB
+        return self._rssi_index / 2 - self._RSSI_OFFSET_dB
+
+    def __str__(self) -> str:
+        return "{}(RSSI {:.1f} dBm, 0x{})".format(
+            type(self).__name__,
+            self.rssi_dbm,
+            "".join("{:02x}".format(b) for b in self.data),
+        )
 
 
 class CC1101:
@@ -681,3 +720,22 @@ class CC1101:
         finally:
             self._command_strobe(StrobeAddress.SIDLE)
             self._set_transceive_mode(_TransceiveMode.FIFO)
+
+    def _enable_receive_mode(self) -> None:  # unstable
+        self._command_strobe(StrobeAddress.SRX)
+
+    def _get_received_packet(self) -> typing.Optional[_ReceivedPacket]:  # unstable
+        """
+        see section "20 Data FIFO"
+        """
+        rxbytes = self._read_status_register(StatusRegisterAddress.RXBYTES)
+        # PKTCTRL1.APPEND_STATUS is enabled by default
+        if rxbytes < 2:
+            return None
+        buffer = self._read_burst(start_register=FIFORegisterAddress.RX, length=rxbytes)
+        return _ReceivedPacket(
+            data=bytes(buffer[:-2]),
+            rssi_index=buffer[-2],
+            checksum_valid=bool(buffer[-1] >> 7),
+            link_quality_indicator=buffer[-1] & 0b0111111,
+        )
