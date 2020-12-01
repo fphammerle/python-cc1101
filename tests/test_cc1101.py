@@ -15,9 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import unittest.mock
+
 import pytest
 
 import cc1101
+import cc1101.options
 
 # pylint: disable=protected-access
 
@@ -86,3 +89,50 @@ def test_set_packet_length_bytes(transceiver, packet_length):
     xfer_mock.return_value = [15, 15]
     transceiver.set_packet_length_bytes(packet_length)
     xfer_mock.assert_called_once_with([0x06 | 0x40, packet_length])
+
+
+@pytest.mark.parametrize("packet_length", [-21, 0, 256, 1024])
+def test_set_packet_length_bytes_fail(transceiver, packet_length):
+    with pytest.raises(Exception):
+        transceiver.set_packet_length_bytes(packet_length)
+    transceiver._spi.xfer.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("pktctrl0", "expected_mode"),
+    (
+        (0b00000000, cc1101.options.PacketLengthMode.FIXED),
+        (0b00000001, cc1101.options.PacketLengthMode.VARIABLE),
+        (0b01000100, cc1101.options.PacketLengthMode.FIXED),
+        (0b01000101, cc1101.options.PacketLengthMode.VARIABLE),
+    ),
+)
+def test_get_packet_length_mode(transceiver, pktctrl0, expected_mode):
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [0, pktctrl0]
+    assert transceiver.get_packet_length_mode() == expected_mode
+    xfer_mock.assert_called_once_with([0x08 | 0x80, 0])
+
+
+@pytest.mark.parametrize(
+    ("pktctrl0_before", "pktctrl0_after", "mode"),
+    (
+        (0b00000000, 0b00000000, cc1101.options.PacketLengthMode.FIXED),
+        (0b00000001, 0b00000000, cc1101.options.PacketLengthMode.FIXED),
+        (0b00000001, 0b00000001, cc1101.options.PacketLengthMode.VARIABLE),
+        (0b00000010, 0b00000000, cc1101.options.PacketLengthMode.FIXED),
+        (0b00000010, 0b00000001, cc1101.options.PacketLengthMode.VARIABLE),
+        (0b01000100, 0b01000100, cc1101.options.PacketLengthMode.FIXED),
+        (0b01000100, 0b01000101, cc1101.options.PacketLengthMode.VARIABLE),
+        (0b01000101, 0b01000100, cc1101.options.PacketLengthMode.FIXED),
+        (0b01000101, 0b01000101, cc1101.options.PacketLengthMode.VARIABLE),
+    ),
+)
+def test_set_packet_length_mode(transceiver, pktctrl0_before, pktctrl0_after, mode):
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=pktctrl0_before
+    ):
+        transceiver.set_packet_length_mode(mode)
+    xfer_mock.assert_called_once_with([0x08 | 0x40, pktctrl0_after])
