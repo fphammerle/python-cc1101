@@ -388,11 +388,11 @@ class CC1101:
             "symbol_rate={:.2f}kBaud".format(self.get_symbol_rate_baud() / 1000),
             "modulation_format={}".format(self.get_modulation_format().name),
             "sync_mode={}".format(self.get_sync_mode().name),
-            "packet_length{}{}".format(
+            "packet_length{}{}B".format(
                 "≤"
                 if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
                 else "=",
-                self.get_packet_length(),
+                self.get_packet_length_bytes(),
             ),
         )
         return "CC1101({})".format(", ".join(attrs))
@@ -413,7 +413,7 @@ class CC1101:
             for i, v in enumerate(values)
         }
 
-    def get_packet_length(self) -> int:
+    def get_packet_length_bytes(self) -> int:
         """
         PKTLEN
 
@@ -426,9 +426,9 @@ class CC1101:
         """
         return self._read_single_byte(ConfigurationRegisterAddress.PKTLEN)
 
-    def set_packet_length(self, packet_length: int) -> None:
+    def set_packet_length_bytes(self, packet_length: int) -> None:
         """
-        see get_packet_length()
+        see get_packet_length_bytes()
         """
         assert 1 <= packet_length <= 255, "unsupported packet length {}".format(
             packet_length
@@ -513,7 +513,7 @@ class CC1101:
         # > In variable packet length mode, [...]
         # > The first byte written to the TXFIFO must be different from 0.
         packet_length_mode = self.get_packet_length_mode()
-        packet_length = self.get_packet_length()
+        packet_length = self.get_packet_length_bytes()
         if packet_length_mode == PacketLengthMode.VARIABLE:
             if not payload:
                 raise ValueError("empty payload {!r}".format(payload))
@@ -527,7 +527,7 @@ class CC1101:
                     "payload exceeds maximum payload length of {} bytes".format(
                         packet_length
                     )
-                    + "\nsee .get_packet_length()"
+                    + "\nsee .get_packet_length_bytes()"
                     + "\npayload: {!r}".format(payload)
                 )
         elif (
@@ -538,7 +538,7 @@ class CC1101:
                 "expected payload length of {} bytes, got {}".format(
                     packet_length, len(payload)
                 )
-                + "\nsee .set_packet_length_mode() and .get_packet_length()"
+                + "\nsee .set_packet_length_mode() and .get_packet_length_bytes()"
                 + "\npayload: {!r}".format(payload)
             )
         marcstate = self.get_main_radio_control_state_machine_state()
