@@ -428,6 +428,21 @@ class CC1101:
             start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
         )
 
+    def disable_checksum(self) -> None:
+        """
+        PKTCTRL0.CRC_EN
+
+        Disable automatic 2-byte cyclic redundancy check (CRC) sum
+        appending in TX mode and checking in RX mode.
+
+        See "Figure 19: Packet Format".
+        """
+        pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
+        pktctrl0 &= 0b11111011
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
+        )
+
     def _get_transceive_mode(self) -> _TransceiveMode:
         pktctrl0 = self._read_single_byte(ConfigurationRegisterAddress.PKTCTRL0)
         return _TransceiveMode((pktctrl0 >> 4) & 0b11)
