@@ -447,6 +447,9 @@ class CC1101:
         self._command_strobe(StrobeAddress.SFTX)
 
     def transmit(self, payload: bytes) -> None:
+        """
+        The most significant bit is transmitted first.
+        """
         # see "15.2 Packet Format"
         # > In variable packet length mode, [...]
         # > The first byte written to the TXFIFO must be different from 0.
