@@ -463,6 +463,11 @@ class CC1101:
 
     def transmit(self, payload: bytes) -> None:
         """
+        > [...], the packet length is configured by the first byte [...].
+        > The packet length is defined as the payload data,
+        > excluding the length byte and the optional CRC.
+        from "15.2 Packet Format"
+
         The most significant bit is transmitted first.
         """
         # see "15.2 Packet Format"
