@@ -423,6 +423,17 @@ class CC1101:
         """
         return self._read_single_byte(ConfigurationRegisterAddress.PKTLEN)
 
+    def set_packet_length(self, packet_length: int) -> None:
+        """
+        see get_packet_length()
+        """
+        assert 1 <= packet_length <= 255, "unsupported packet length {}".format(
+            packet_length
+        )
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.PKTLEN, values=[packet_length]
+        )
+
     def _disable_data_whitening(self):
         """
         PKTCTRL0.WHITE_DATA

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new enum `options.PacketLengthMode`
 - new method `get_packet_length_mode()`
 - method `get_packet_length()` is now public
+- new method `set_packet_length()`
 - added configured packet length to `CC1101`'s string representation
   (`≤n` indicates variable length mode, `=n` fixed length mode)
 
