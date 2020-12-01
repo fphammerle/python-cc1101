@@ -61,7 +61,10 @@ class MainRadioControlStateMachineState(enum.IntEnum):
     STARTCAL = 0x08  # after IDLE
     BWBOOST = 0x09  # after STARTCAL
     FS_LOCK = 0x0A
+    RX = 0x0D
+    RXFIFO_OVERFLOW = 0x11
     TX = 0x13
+    # TXFIFO_UNDERFLOW = 0x16
 
 
 class CC1101:
