@@ -71,3 +71,18 @@ def test__symbol_rate_real_to_floating_point(mantissa, exponent, real):
         mantissa,
         exponent,
     )
+
+
+def test_get_packet_length_bytes(transceiver):
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [0, 8]
+    assert transceiver.get_packet_length_bytes() == 8
+    xfer_mock.assert_called_once_with([0x06 | 0x80, 0])
+
+
+@pytest.mark.parametrize("packet_length", [21])
+def test_set_packet_length_bytes(transceiver, packet_length):
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [15, 15]
+    transceiver.set_packet_length_bytes(packet_length)
+    xfer_mock.assert_called_once_with([0x06 | 0x40, packet_length])
