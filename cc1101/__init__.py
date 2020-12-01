@@ -532,7 +532,9 @@ class CC1101:
             and len(payload) != packet_length
         ):
             raise ValueError(
-                "expected payload length of {} bytes, got {}"
+                "expected payload length of {} bytes, got {}".format(
+                    packet_length, len(payload)
+                )
                 + "\nsee .set_packet_length_mode() and .get_packet_length()"
                 + "\npayload: {!r}".format(payload)
             )
