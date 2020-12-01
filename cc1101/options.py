@@ -18,6 +18,16 @@
 import enum
 
 
+class PacketLengthMode(enum.IntEnum):
+    """
+    PKTCTRL0.LENGTH_CONFIG
+    """
+
+    FIXED = 0b00
+    VARIABLE = 0b01
+    # INFINITE = 0b10
+
+
 class ModulationFormat(enum.IntEnum):
     """
     MDMCFG2.MOD_FORMAT

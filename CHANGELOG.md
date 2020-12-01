@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- support for fixed packet length mode
+  via new method `set_packet_length_mode(PacketLengthMode.FIXED)`
+- new enum `options.PacketLengthMode`
+- new method `get_packet_length_mode()`
+- method `get_packet_length()` is now public
+- new method `set_packet_length()`
+- added configured packet length to `CC1101`'s string representation
+  (`≤n` indicates variable length mode, `=n` fixed length mode)
 
 ## [1.1.0] - 2020-12-01
 ### Added
