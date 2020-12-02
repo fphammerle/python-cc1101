@@ -19,19 +19,6 @@ def test_transmit_empty_payload(transceiver):
             transceiver.transmit([])
 
 
-@pytest.mark.parametrize("payload", (b"\0\x01\x02", [0, 127]))
-def test_transmit_first_null(transceiver, payload):
-    with unittest.mock.patch.object(
-        transceiver,
-        "get_packet_length_mode",
-        return_value=cc1101.options.PacketLengthMode.VARIABLE,
-    ), unittest.mock.patch.object(
-        transceiver, "get_packet_length_bytes", return_value=21
-    ):
-        with pytest.raises(ValueError, match=r"\bfirst byte\b.*\bmust not be null\b"):
-            transceiver.transmit(payload)
-
-
 @pytest.mark.parametrize(
     ("max_packet_length", "payload"),
     ((3, "\x04\x01\x02\x03"), (4, [7, 21, 42, 0, 0, 1, 2, 3])),
@@ -107,6 +94,6 @@ def test_transmit_variable(transceiver, payload):
         transceiver.transmit(payload)
     assert transceiver._spi.xfer.call_args_list == [
         unittest.mock.call([0x3B]),  # flush
-        unittest.mock.call([0x3F | 0x40] + list(payload)),
+        unittest.mock.call([0x3F | 0x40] + [len(payload)] + list(payload)),
         unittest.mock.call([0x35]),  # start transmission
     ]

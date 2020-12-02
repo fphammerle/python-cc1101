@@ -501,13 +501,19 @@ class CC1101:
 
     def transmit(self, payload: bytes) -> None:
         """
-        > In variable packet length mode [.set/get_packet_length_mode()],
+        The most significant bit is transmitted first.
+
+        In variable packet length mode,
+        a byte indicating the packet's length will be prepended.
+
+        > In variable packet length mode,
         > the packet length is configured by the first byte [...].
         > The packet length is defined as the payload data,
         > excluding the length byte and the optional CRC.
         from "15.2 Packet Format"
 
-        The most significant bit is transmitted first.
+        Call .set_packet_length_mode(cc1101.PacketLengthMode.FIXED)
+        to switch to fixed packet length mode.
         """
         # see "15.2 Packet Format"
         # > In variable packet length mode, [...]
@@ -517,11 +523,6 @@ class CC1101:
         if packet_length_mode == PacketLengthMode.VARIABLE:
             if not payload:
                 raise ValueError("empty payload {!r}".format(payload))
-            if payload[0] == 0:
-                raise ValueError(
-                    "in variable packet length mode the first byte of the payload must not be null"
-                    + "\npayload: {!r}".format(payload)
-                )
             if len(payload) > packet_length:
                 raise ValueError(
                     "payload exceeds maximum payload length of {} bytes".format(
@@ -530,6 +531,7 @@ class CC1101:
                     + "\nsee .get_packet_length_bytes()"
                     + "\npayload: {!r}".format(payload)
                 )
+            payload = int.to_bytes(len(payload), length=1, byteorder="big") + payload
         elif (
             packet_length_mode == PacketLengthMode.FIXED
             and len(payload) != packet_length

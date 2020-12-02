@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- `transmit()`: prepend length byte in variable packet length mode internally
+  to avoid accidental incomplete transmissions and TX FIFO underflows
 
 ## [1.2.0] - 2020-12-02
 ### Added
