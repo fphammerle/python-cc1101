@@ -22,6 +22,7 @@ mypy = "*"
 pylint = "*"
 pylint-import-requirements = "*"
 pytest = "*"
+pytest-cov = "*"
 
 # python3.5 compatibility
 isort = "<5"
