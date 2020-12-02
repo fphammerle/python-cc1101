@@ -18,9 +18,9 @@ with cc1101.CC1101() as transceiver:
     print("symbol rate", transceiver.get_symbol_rate_baud(), "Baud")
     print("modulation format", transceiver.get_modulation_format().name)
     print("starting transmission")
-    transceiver.transmit(b"\x01\xff\x00 message")
+    transceiver.transmit(b"\x0a\xff\x00 message")
     time.sleep(1.0)
-    transceiver.transmit(bytes([0x01, 0b10101010, 0xFF]))
-    while True:
+    transceiver.transmit(bytes([0x02, 0b10101010, 0xFF]))
+    for i in range(16):
         time.sleep(1.0)
-        transceiver.transmit(bytes(range(1, 16)))
+        transceiver.transmit(bytes([1, i]))
