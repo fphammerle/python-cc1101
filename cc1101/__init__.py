@@ -102,6 +102,11 @@ class CC1101:
     @staticmethod
     def _log_chip_status_byte(chip_status: int) -> None:
         # see "10.1 Chip Status Byte" & "Table 23: Status Byte Summary"
+        # > The command strobe registers are accessed by transferring
+        # > a single header byte [...]. That is, only the R/W̄ bit,
+        # > the burst access bit (set to 0), and the six address bits [...]
+        # > The R/W̄ bit can be either one or zero and will determine how the
+        # > FIFO_BYTES_AVAILABLE field in the status byte should be interpreted.
         _LOGGER.debug(
             "chip status byte: CHIP_RDYn=%d STATE=%s FIFO_BYTES_AVAILBLE=%d",
             chip_status >> 7,
