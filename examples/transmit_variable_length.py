@@ -11,6 +11,7 @@ with cc1101.CC1101() as transceiver:
     transceiver.set_base_frequency_hertz(433.5e6)
     transceiver.set_symbol_rate_baud(600)
     # transceiver.set_sync_mode(cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD)
+    # transceiver.set_preamble_length_bytes(2)
     # transceiver.set_sync_word(b"\x12\x34")
     # transceiver.disable_checksum()
     print(transceiver)

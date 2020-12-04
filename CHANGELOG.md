@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - method `.get_sync_word()`
 - method `.set_sync_word()`
 - method `.get_preamble_length_bytes()`
+- method `.set_preamble_length_bytes()`
 - preamble length & sync word in string representation
 
 ## [2.0.0] - 2020-12-03

@@ -297,6 +297,8 @@ class CC1101:
 
     def get_preamble_length_bytes(self) -> int:
         """
+        MDMCFG1.NUM_PREAMBLE
+
         Minimum number of preamble bytes to be transmitted.
 
         See "15.2 Packet Format"
@@ -305,6 +307,23 @@ class CC1101:
             self._read_single_byte(ConfigurationRegisterAddress.MDMCFG1) >> 4
         ) & 0b111
         return 2 ** (index >> 1) * (2 + (index & 0b1))
+
+    def _set_preamble_length_index(self, index: int) -> None:
+        assert 0 <= index <= 0b111
+        mdmcfg1 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG1)
+        mdmcfg1 &= 0b10001111
+        mdmcfg1 |= index << 4
+        self._write_burst(ConfigurationRegisterAddress.MDMCFG1, [mdmcfg1])
+
+    def set_preamble_length_bytes(self, length: int) -> None:
+        """
+        see .get_preamble_length_bytes()
+        """
+        if length % 2:
+            index = math.log2(length / 3) * 2 + 1
+        else:
+            index = math.log2(length / 2) * 2
+        self._set_preamble_length_index(int(index))
 
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
         """
