@@ -459,6 +459,16 @@ class CC1101:
             )
         )
 
+    def set_sync_word(self, sync_word: bytes) -> None:
+        """
+        See .set_sync_word()
+        """
+        if len(sync_word) != 2:
+            raise ValueError("expected two bytes, got {!r}".format(sync_word))
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.SYNC1, values=list(sync_word)
+        )
+
     def get_packet_length_bytes(self) -> int:
         """
         PKTLEN

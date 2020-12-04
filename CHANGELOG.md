@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - method `.get_sync_word()`
+- method `.set_sync_word()`
 - sync word in string representation
 
 ## [2.0.0] - 2020-12-03
