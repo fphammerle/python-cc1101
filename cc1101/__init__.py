@@ -170,6 +170,28 @@ class CC1101:
     def _reset(self) -> None:
         self._command_strobe(StrobeAddress.SRES)
 
+    @classmethod
+    def _filter_bandwidth_floating_point_to_real(
+        cls, mantissa: int, exponent: int
+    ) -> float:
+        """
+        See "13 Receiver Channel Filter Bandwidth"
+        """
+        return cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / (
+            8 * (4 + mantissa) * (2 ** exponent)
+        )
+
+    def _get_filter_bandwidth_hertz(self) -> float:
+        """
+        See "13 Receiver Channel Filter Bandwidth"
+
+        MDMCFG4.CHANBW_E & MDMCFG4.CHANBW_M
+        """
+        mdmcfg4 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG4)
+        return self._filter_bandwidth_floating_point_to_real(
+            exponent=mdmcfg4 >> 6, mantissa=(mdmcfg4 >> 4) & 0b11
+        )
+
     def _get_symbol_rate_exponent(self) -> int:
         """
         MDMCFG4.DRATE_E

@@ -48,6 +48,47 @@ def test__hertz_to_frequency_control_word(control_word, hertz):
     assert cc1101.CC1101._hertz_to_frequency_control_word(hertz) == control_word
 
 
+_FILTER_BANDWIDTH_MANTISSA_EXPONENT_REAL_PARAMS = [
+    # > The default values give 203 kHz channel filter bandwidth,
+    # > assuming a 26.0 MHz crystal.
+    (0, 2, 203e3),
+    # "Table 26: Channel Filter Bandwidths [kHz] (assuming a 26 MHz crystal)"
+    (0, 0, 812e3),
+    (0, 1, 406e3),
+    (0, 2, 203e3),
+    (1, 0, 650e3),
+    (1, 1, 325e3),
+    (3, 0, 464e3),
+    (3, 1, 232e3),
+    (3, 2, 116e3),
+    (3, 3, 58e3),
+]
+
+
+@pytest.mark.parametrize(
+    ("mantissa", "exponent", "real"), _FILTER_BANDWIDTH_MANTISSA_EXPONENT_REAL_PARAMS
+)
+def test__filter_bandwidth_floating_point_to_real(mantissa, exponent, real):
+    assert cc1101.CC1101._filter_bandwidth_floating_point_to_real(
+        mantissa=mantissa, exponent=exponent
+    ) == pytest.approx(real, rel=1e-3)
+
+
+@pytest.mark.parametrize(
+    ("mdmcfg4", "real"),
+    [
+        (0b10001100, 203e3),
+        (0b10001010, 203e3),
+        (0b10001110, 203e3),
+        (0b11111100, 58e3),
+        (0b01011100, 325e3),
+    ],
+)
+def test__get_filter_bandwidth_hertz(transceiver, mdmcfg4, real):
+    transceiver._spi.xfer.return_value = [15, mdmcfg4]
+    assert transceiver._get_filter_bandwidth_hertz() == pytest.approx(real, rel=1e-3)
+
+
 _SYMBOL_RATE_MANTISSA_EXPONENT_REAL_PARAMS = [
     # > The default values give a data rate of 115.051 kBaud
     # > (closest setting to 115.2 kBaud), assuming a 26.0 MHz crystal.
