@@ -24,6 +24,17 @@ import cc1101.options
 
 # pylint: disable=protected-access
 
+
+@pytest.mark.parametrize(
+    ("xfer_return_value", "sync_word"),
+    [([64, 211, 145], b"\xd3\x91"), ([64, 0, 0], b"\0\0")],
+)
+def test_get_sync_word(transceiver, xfer_return_value, sync_word):
+    transceiver._spi.xfer.return_value = xfer_return_value
+    assert transceiver.get_sync_word() == sync_word
+    transceiver._spi.xfer.assert_called_once_with([0x04 | 0xC0, 0, 0])
+
+
 _FREQUENCY_CONTROL_WORD_HERTZ_PARAMS = [
     ([0x10, 0xA7, 0x62], 433000000),
     ([0x10, 0xAB, 0x85], 433420000),
@@ -87,6 +98,7 @@ def test__filter_bandwidth_floating_point_to_real(mantissa, exponent, real):
 def test__get_filter_bandwidth_hertz(transceiver, mdmcfg4, real):
     transceiver._spi.xfer.return_value = [15, mdmcfg4]
     assert transceiver._get_filter_bandwidth_hertz() == pytest.approx(real, rel=1e-3)
+    transceiver._spi.xfer.assert_called_once_with([0x10 | 0x80, 0])
 
 
 _SYMBOL_RATE_MANTISSA_EXPONENT_REAL_PARAMS = [

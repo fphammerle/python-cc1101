@@ -271,7 +271,8 @@ class CC1101:
         """
         MDMCFG2.MANCHESTER_EN
 
-        Enable manchester encoding & decoding.
+        Enable manchester encoding & decoding for the entire packet,
+        including the preamble and synchronization word.
         """
         mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
         mdmcfg2 |= 0b1000
@@ -405,6 +406,7 @@ class CC1101:
         )
 
     def __str__(self) -> str:
+        sync_mode = self.get_sync_mode()
         attrs = (
             "marcstate={}".format(
                 self.get_main_radio_control_state_machine_state().name.lower()
@@ -414,7 +416,10 @@ class CC1101:
             ),
             "symbol_rate={:.2f}kBaud".format(self.get_symbol_rate_baud() / 1000),
             "modulation_format={}".format(self.get_modulation_format().name),
-            "sync_mode={}".format(self.get_sync_mode().name),
+            "sync_mode={}".format(sync_mode.name),
+            "sync_word=0x{:02x}{:02x}".format(*self.get_sync_word())
+            if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
+            else None,
             "packet_length{}{}B".format(
                 "≤"
                 if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
@@ -422,7 +427,7 @@ class CC1101:
                 self.get_packet_length_bytes(),
             ),
         )
-        return "CC1101({})".format(", ".join(attrs))
+        return "CC1101({})".format(", ".join(filter(None, attrs)))
 
     def get_configuration_register_values(
         self,
@@ -439,6 +444,20 @@ class CC1101:
             ConfigurationRegisterAddress(start_register + i): v
             for i, v in enumerate(values)
         }
+
+    def get_sync_word(self) -> bytes:
+        """
+        SYNC1 & SYNC0
+
+        See "15.2 Packet Format"
+
+        The first byte's most significant bit is transmitted first.
+        """
+        return bytes(
+            self._read_burst(
+                start_register=ConfigurationRegisterAddress.SYNC1, length=2
+            )
+        )
 
     def get_packet_length_bytes(self) -> int:
         """
