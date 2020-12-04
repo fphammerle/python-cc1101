@@ -113,6 +113,24 @@ def test__get_filter_bandwidth_hertz(transceiver, mdmcfg4, real):
     transceiver._spi.xfer.assert_called_once_with([0x10 | 0x80, 0])
 
 
+@pytest.mark.parametrize(
+    ("mdmcfg4", "symbol_rate_exponent"), [(0b1001100, 12), (0b10011001, 9)]
+)
+def test__get_symbol_rate_exponent(transceiver, mdmcfg4, symbol_rate_exponent):
+    transceiver._spi.xfer.return_value = [15, mdmcfg4]
+    assert transceiver._get_symbol_rate_exponent() == symbol_rate_exponent
+    transceiver._spi.xfer.assert_called_once_with([0x10 | 0x80, 0])
+
+
+@pytest.mark.parametrize(
+    ("mdmcfg3", "symbol_rate_mantissa"), [(0b00100010, 34), (0b10101010, 170)]
+)
+def test__get_symbol_rate_mantissa(transceiver, mdmcfg3, symbol_rate_mantissa):
+    transceiver._spi.xfer.return_value = [15, mdmcfg3]
+    assert transceiver._get_symbol_rate_mantissa() == symbol_rate_mantissa
+    transceiver._spi.xfer.assert_called_once_with([0x11 | 0x80, 0])
+
+
 _SYMBOL_RATE_MANTISSA_EXPONENT_REAL_PARAMS = [
     # > The default values give a data rate of 115.051 kBaud
     # > (closest setting to 115.2 kBaud), assuming a 26.0 MHz crystal.
