@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - method `.get_sync_word()`
 - method `.set_sync_word()`
-- sync word in string representation
+- method `.get_preamble_length_bytes()`
+- preamble length & sync word in string representation
 
 ## [2.0.0] - 2020-12-03
 ### Changed

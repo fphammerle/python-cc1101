@@ -141,6 +141,25 @@ def test__symbol_rate_real_to_floating_point(mantissa, exponent, real):
     )
 
 
+@pytest.mark.parametrize(
+    ("mdmcfg1", "length"),
+    [
+        (0b00000010, 2),
+        (0b00010010, 3),
+        (0b00100010, 4),
+        (0b00110010, 6),
+        (0b01000010, 8),
+        (0b01010010, 12),
+        (0b01100010, 16),
+        (0b01110010, 24),
+    ],
+)
+def test_get_preamble_length_bytes(transceiver, mdmcfg1, length):
+    transceiver._spi.xfer.return_value = [0, mdmcfg1]
+    assert transceiver.get_preamble_length_bytes() == length
+    transceiver._spi.xfer.assert_called_once_with([0x13 | 0x80, 0])
+
+
 def test_get_packet_length_bytes(transceiver):
     xfer_mock = transceiver._spi.xfer
     xfer_mock.return_value = [0, 8]

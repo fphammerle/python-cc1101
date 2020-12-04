@@ -20,13 +20,10 @@ with cc1101.CC1101() as transceiver:
     print("modulation format", transceiver.get_modulation_format().name)
     sync_mode = transceiver.get_sync_mode()
     print("sync mode", sync_mode)
-    print(
-        "sync word",
-        transceiver.get_sync_word()
-        if sync_mode != cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD
-        else "disabled",
-    )
-    print("starting transmission")
+    if sync_mode != cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD:
+        print("preamble length", transceiver.get_preamble_length_bytes(), "bytes")
+        print("sync word", transceiver.get_sync_word())
+    print("\nstarting transmission")
     transceiver.transmit(b"\xff\xaa\x00 message")
     time.sleep(1.0)
     transceiver.transmit(bytes([0, 0b10101010, 0xFF]))

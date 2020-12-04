@@ -69,6 +69,8 @@ class MainRadioControlStateMachineState(enum.IntEnum):
 
 class CC1101:
 
+    # pylint: disable=too-many-public-methods
+
     # > All transfers on the SPI interface are done
     # > most significant bit first.
     # > All transactions on the SPI interface start with
@@ -293,6 +295,17 @@ class CC1101:
         mdmcfg2 |= mode
         self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
 
+    def get_preamble_length_bytes(self) -> int:
+        """
+        Minimum number of preamble bytes to be transmitted.
+
+        See "15.2 Packet Format"
+        """
+        index = (
+            self._read_single_byte(ConfigurationRegisterAddress.MDMCFG1) >> 4
+        ) & 0b111
+        return int(2 ** int(index / 2 + 1) * (1 + (index & 0b1) * 0.5))
+
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
         """
         FREND0.PA_POWER
@@ -417,6 +430,9 @@ class CC1101:
             "symbol_rate={:.2f}kBaud".format(self.get_symbol_rate_baud() / 1000),
             "modulation_format={}".format(self.get_modulation_format().name),
             "sync_mode={}".format(sync_mode.name),
+            "preamble_length={}B".format(self.get_preamble_length_bytes())
+            if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
+            else None,
             "sync_word=0x{:02x}{:02x}".format(*self.get_sync_word())
             if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
             else None,
