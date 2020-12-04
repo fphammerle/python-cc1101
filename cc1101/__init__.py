@@ -304,7 +304,7 @@ class CC1101:
         index = (
             self._read_single_byte(ConfigurationRegisterAddress.MDMCFG1) >> 4
         ) & 0b111
-        return int(2 ** int(index / 2 + 1) * (1 + (index & 0b1) * 0.5))
+        return 2 ** (index >> 1) * (2 + (index & 0b1))
 
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
         """
