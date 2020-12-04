@@ -188,6 +188,14 @@ def test_set_preamble_length_bytes(transceiver, mdmcfg1_before, mdmcfg1_after, l
     transceiver._spi.xfer.assert_called_once_with([0x13 | 0x40, mdmcfg1_after])
 
 
+@pytest.mark.parametrize(
+    "length", [-21, 0, 1, 5, 7, 9, 10, 11, 13, 14, 15, 17, 20, 23, 25, 32, 42]
+)
+def test_set_preamble_length_bytes_invalid(transceiver, length):
+    with pytest.raises(ValueError, match=r"\bpreamble length\b"):
+        transceiver.set_preamble_length_bytes(length)
+
+
 def test_get_packet_length_bytes(transceiver):
     xfer_mock = transceiver._spi.xfer
     xfer_mock.return_value = [0, 8]

@@ -319,10 +319,21 @@ class CC1101:
         """
         see .get_preamble_length_bytes()
         """
-        if length % 2:
+        if length < 1:
+            raise ValueError(
+                "invalid preamble length {} given".format(length)
+                + "\ncall .set_sync_mode(cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD)"
+                + " to disable preamble"
+            )
+        if length % 3 == 0:
             index = math.log2(length / 3) * 2 + 1
         else:
             index = math.log2(length / 2) * 2
+        if not index.is_integer() or index < 0 or index > 0b111:
+            raise ValueError(
+                "unsupported preamble length: {} bytes".format(length)
+                + "\nsee MDMCFG1.NUM_PREAMBLE in cc1101 docs"
+            )
         self._set_preamble_length_index(int(index))
 
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
