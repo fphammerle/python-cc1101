@@ -114,6 +114,28 @@ def test__get_filter_bandwidth_hertz(transceiver, mdmcfg4, real):
 
 
 @pytest.mark.parametrize(
+    ("mdmcfg4_before", "mdmcfg4_after", "exponent", "mantissa"),
+    [
+        (0b00001010, 0b10111010, 0b10, 0b11),
+        (0b00001100, 0b01001100, 0b01, 0b00),
+        (0b00001100, 0b10111100, 0b10, 0b11),
+        (0b00001100, 0b11011100, 0b11, 0b01),
+        (0b01011100, 0b11011100, 0b11, 0b01),
+        (0b11111100, 0b11011100, 0b11, 0b01),
+    ],
+)
+def test__set_filter_bandwidth(
+    transceiver, mdmcfg4_before, mdmcfg4_after, exponent, mantissa
+):
+    transceiver._spi.xfer.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=mdmcfg4_before
+    ):
+        transceiver._set_filter_bandwidth(mantissa=mantissa, exponent=exponent)
+    transceiver._spi.xfer.assert_called_once_with([0x10 | 0x40, mdmcfg4_after])
+
+
+@pytest.mark.parametrize(
     ("mdmcfg4", "symbol_rate_exponent"), [(0b1001100, 12), (0b10011001, 9)]
 )
 def test__get_symbol_rate_exponent(transceiver, mdmcfg4, symbol_rate_exponent):
