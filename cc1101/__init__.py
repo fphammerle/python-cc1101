@@ -233,6 +233,20 @@ class CC1101:
             exponent=mdmcfg4 >> 6, mantissa=(mdmcfg4 >> 4) & 0b11
         )
 
+    def _set_filter_bandwidth(self, *, mantissa: int, exponent: int) -> None:
+        """
+        MDMCFG4.CHANBW_E & MDMCFG4.CHANBW_M
+        """
+        mdmcfg4 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG4)
+        mdmcfg4 &= 0b00001111
+        assert 0 <= exponent <= 0b11, exponent
+        mdmcfg4 |= exponent << 6
+        assert 0 <= mantissa <= 0b11, mantissa
+        mdmcfg4 |= mantissa << 4
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.MDMCFG4, values=[mdmcfg4]
+        )
+
     def _get_symbol_rate_exponent(self) -> int:
         """
         MDMCFG4.DRATE_E
