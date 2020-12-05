@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import collections
 import contextlib
 import enum
 import logging
@@ -75,9 +74,9 @@ class _ReceivedPacket:  # unstable
 
     def __init__(
         self,
-        *,
+        # *,
         data: bytes,
-        rssi_index: int,
+        rssi_index: int,  # byte
         checksum_valid: bool,
         link_quality_indicator: int,  # 7bit
     ):
