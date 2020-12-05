@@ -67,6 +67,45 @@ class MainRadioControlStateMachineState(enum.IntEnum):
     # TXFIFO_UNDERFLOW = 0x16
 
 
+class _ReceivedPacket:  # unstable
+
+    # "Table 31: Typical RSSI_offset Values"
+    _RSSI_OFFSET_dB = 74
+
+    def __init__(
+        self,
+        # *,
+        data: bytes,
+        rssi_index: int,  # byte
+        checksum_valid: bool,
+        link_quality_indicator: int,  # 7bit
+    ):
+        self.data = data
+        self._rssi_index = rssi_index
+        assert 0 <= rssi_index < (1 << 8), rssi_index
+        self.checksum_valid = checksum_valid
+        self.link_quality_indicator = link_quality_indicator
+        assert 0 <= link_quality_indicator < (1 << 7), link_quality_indicator
+
+    @property
+    def rssi_dbm(self) -> float:
+        """
+        Estimated Received Signal Strength Indicator (RSSI) in dBm
+
+        see section "17.3 RSSI"
+        """
+        if self._rssi_index >= 128:
+            return (self._rssi_index - 256) / 2 - self._RSSI_OFFSET_dB
+        return self._rssi_index / 2 - self._RSSI_OFFSET_dB
+
+    def __str__(self) -> str:
+        return "{}(RSSI {:.0f}dBm, 0x{})".format(
+            type(self).__name__,
+            self.rssi_dbm,
+            "".join("{:02x}".format(b) for b in self.data),
+        )
+
+
 class CC1101:
 
     # pylint: disable=too-many-public-methods
@@ -192,6 +231,20 @@ class CC1101:
         mdmcfg4 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG4)
         return self._filter_bandwidth_floating_point_to_real(
             exponent=mdmcfg4 >> 6, mantissa=(mdmcfg4 >> 4) & 0b11
+        )
+
+    def _set_filter_bandwidth(self, *, mantissa: int, exponent: int) -> None:
+        """
+        MDMCFG4.CHANBW_E & MDMCFG4.CHANBW_M
+        """
+        mdmcfg4 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG4)
+        mdmcfg4 &= 0b00001111
+        assert 0 <= exponent <= 0b11, exponent
+        mdmcfg4 |= exponent << 6
+        assert 0 <= mantissa <= 0b11, mantissa
+        mdmcfg4 |= mantissa << 4
+        self._write_burst(
+            start_register=ConfigurationRegisterAddress.MDMCFG4, values=[mdmcfg4]
         )
 
     def _get_symbol_rate_exponent(self) -> int:
@@ -681,3 +734,22 @@ class CC1101:
         finally:
             self._command_strobe(StrobeAddress.SIDLE)
             self._set_transceive_mode(_TransceiveMode.FIFO)
+
+    def _enable_receive_mode(self) -> None:  # unstable
+        self._command_strobe(StrobeAddress.SRX)
+
+    def _get_received_packet(self) -> typing.Optional[_ReceivedPacket]:  # unstable
+        """
+        see section "20 Data FIFO"
+        """
+        rxbytes = self._read_status_register(StatusRegisterAddress.RXBYTES)
+        # PKTCTRL1.APPEND_STATUS is enabled by default
+        if rxbytes < 2:
+            return None
+        buffer = self._read_burst(start_register=FIFORegisterAddress.RX, length=rxbytes)
+        return _ReceivedPacket(
+            data=bytes(buffer[:-2]),
+            rssi_index=buffer[-2],
+            checksum_valid=bool(buffer[-1] >> 7),
+            link_quality_indicator=buffer[-1] & 0b0111111,
+        )
