@@ -75,6 +75,7 @@ class _ReceivedPacket:  # unstable
 
     def __init__(
         self,
+        *,
         data: bytes,
         rssi_index: int,
         checksum_valid: bool,
@@ -99,7 +100,7 @@ class _ReceivedPacket:  # unstable
         return self._rssi_index / 2 - self._RSSI_OFFSET_dB
 
     def __str__(self) -> str:
-        return "{}(RSSI {:.1f} dBm, 0x{})".format(
+        return "{}(RSSI {:.0f}dBm, 0x{})".format(
             type(self).__name__,
             self.rssi_dbm,
             "".join("{:02x}".format(b) for b in self.data),
