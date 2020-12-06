@@ -182,6 +182,25 @@ def test__symbol_rate_real_to_floating_point(mantissa, exponent, real):
 
 
 @pytest.mark.parametrize(
+    ("mdmcfg2_before", "mdmcfg2_after", "sync_mode"),
+    [
+        (0b00000010, 0b00000000, cc1101.options.SyncMode.NO_PREAMBLE_AND_SYNC_WORD),
+        (0b00000010, 0b00000001, cc1101.options.SyncMode.TRANSMIT_16_MATCH_15_BITS),
+        (0b00000010, 0b00000010, cc1101.options.SyncMode.TRANSMIT_16_MATCH_16_BITS),
+        (0b00000010, 0b00000011, cc1101.options.SyncMode.TRANSMIT_32_MATCH_30_BITS),
+        (0b01101110, 0b01101111, cc1101.options.SyncMode.TRANSMIT_32_MATCH_30_BITS),
+    ],
+)
+def test_set_sync_mode(transceiver, mdmcfg2_before, mdmcfg2_after, sync_mode):
+    transceiver._spi.xfer.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=mdmcfg2_before
+    ):
+        transceiver.set_sync_mode(sync_mode)
+    transceiver._spi.xfer.assert_called_once_with([0x12 | 0x40, mdmcfg2_after])
+
+
+@pytest.mark.parametrize(
     ("mdmcfg1", "length"),
     [
         (0b00000010, 2),
