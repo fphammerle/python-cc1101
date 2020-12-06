@@ -337,15 +337,33 @@ class CC1101:
         mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
         return SyncMode(mdmcfg2 & 0b11)
 
-    def set_sync_mode(self, mode: SyncMode) -> None:
+    def set_sync_mode(
+        self,
+        mode: SyncMode,
+        *,
+        _carrier_sense_threshold_enabled: typing.Optional[bool] = None  # unstable
+    ) -> None:
         """
         MDMCFG2.SYNC_MODE
 
         see "14.3 Byte Synchronization"
+
+        Carrier Sense (CS) Threshold (when receiving packets, API unstable):
+        > Carrier sense can be used as a sync word qualifier
+        > that requires the signal level to be higher than the threshold
+        > for a sync word > search to be performed [...]
+        > CS can be used to avoid interference from other RF sources [...]
+        True: enable, False: disable, None: keep current setting
+        See "17.4 Carrier Sense (CS)"
         """
         mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
         mdmcfg2 &= 0b11111100
         mdmcfg2 |= mode
+        if _carrier_sense_threshold_enabled is not None:
+            if _carrier_sense_threshold_enabled:
+                mdmcfg2 |= 0b00000100
+            else:
+                mdmcfg2 &= 0b11111011
         self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
 
     def get_preamble_length_bytes(self) -> int:

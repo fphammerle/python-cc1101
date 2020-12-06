@@ -20,7 +20,7 @@ import unittest.mock
 import pytest
 
 import cc1101
-import cc1101.options
+from cc1101.options import PacketLengthMode, SyncMode
 
 # pylint: disable=protected-access
 
@@ -182,21 +182,31 @@ def test__symbol_rate_real_to_floating_point(mantissa, exponent, real):
 
 
 @pytest.mark.parametrize(
-    ("mdmcfg2_before", "mdmcfg2_after", "sync_mode"),
+    ("mdmcfg2_before", "mdmcfg2_after", "sync_mode", "threshold_enabled"),
     [
-        (0b00000010, 0b00000000, cc1101.options.SyncMode.NO_PREAMBLE_AND_SYNC_WORD),
-        (0b00000010, 0b00000001, cc1101.options.SyncMode.TRANSMIT_16_MATCH_15_BITS),
-        (0b00000010, 0b00000010, cc1101.options.SyncMode.TRANSMIT_16_MATCH_16_BITS),
-        (0b00000010, 0b00000011, cc1101.options.SyncMode.TRANSMIT_32_MATCH_30_BITS),
-        (0b01101110, 0b01101111, cc1101.options.SyncMode.TRANSMIT_32_MATCH_30_BITS),
+        (0b00000010, 0b00000000, SyncMode.NO_PREAMBLE_AND_SYNC_WORD, None),
+        (0b00000010, 0b00000001, SyncMode.TRANSMIT_16_MATCH_15_BITS, None),
+        (0b00000010, 0b00000010, SyncMode.TRANSMIT_16_MATCH_16_BITS, None),
+        (0b00000010, 0b00000011, SyncMode.TRANSMIT_32_MATCH_30_BITS, None),
+        (0b01101110, 0b01101111, SyncMode.TRANSMIT_32_MATCH_30_BITS, None),
+        (0b00000010, 0b00000110, SyncMode.TRANSMIT_16_MATCH_16_BITS, True),
+        (0b00000010, 0b00000111, SyncMode.TRANSMIT_32_MATCH_30_BITS, True),
+        (0b01101110, 0b01101111, SyncMode.TRANSMIT_32_MATCH_30_BITS, True),
+        (0b00000010, 0b00000010, SyncMode.TRANSMIT_16_MATCH_16_BITS, False),
+        (0b00000010, 0b00000011, SyncMode.TRANSMIT_32_MATCH_30_BITS, False),
+        (0b01101110, 0b01101011, SyncMode.TRANSMIT_32_MATCH_30_BITS, False),
     ],
 )
-def test_set_sync_mode(transceiver, mdmcfg2_before, mdmcfg2_after, sync_mode):
+def test_set_sync_mode(
+    transceiver, mdmcfg2_before, mdmcfg2_after, sync_mode, threshold_enabled
+):
     transceiver._spi.xfer.return_value = [15, 15]
     with unittest.mock.patch.object(
         transceiver, "_read_single_byte", return_value=mdmcfg2_before
     ):
-        transceiver.set_sync_mode(sync_mode)
+        transceiver.set_sync_mode(
+            sync_mode, _carrier_sense_threshold_enabled=threshold_enabled
+        )
     transceiver._spi.xfer.assert_called_once_with([0x12 | 0x40, mdmcfg2_after])
 
 
@@ -308,10 +318,10 @@ def test_disable_checksum(transceiver, pktctrl0_before, pktctrl0_after):
 @pytest.mark.parametrize(
     ("pktctrl0", "expected_mode"),
     (
-        (0b00000000, cc1101.options.PacketLengthMode.FIXED),
-        (0b00000001, cc1101.options.PacketLengthMode.VARIABLE),
-        (0b01000100, cc1101.options.PacketLengthMode.FIXED),
-        (0b01000101, cc1101.options.PacketLengthMode.VARIABLE),
+        (0b00000000, PacketLengthMode.FIXED),
+        (0b00000001, PacketLengthMode.VARIABLE),
+        (0b01000100, PacketLengthMode.FIXED),
+        (0b01000101, PacketLengthMode.VARIABLE),
     ),
 )
 def test_get_packet_length_mode(transceiver, pktctrl0, expected_mode):
@@ -324,15 +334,15 @@ def test_get_packet_length_mode(transceiver, pktctrl0, expected_mode):
 @pytest.mark.parametrize(
     ("pktctrl0_before", "pktctrl0_after", "mode"),
     (
-        (0b00000000, 0b00000000, cc1101.options.PacketLengthMode.FIXED),
-        (0b00000001, 0b00000000, cc1101.options.PacketLengthMode.FIXED),
-        (0b00000001, 0b00000001, cc1101.options.PacketLengthMode.VARIABLE),
-        (0b00000010, 0b00000000, cc1101.options.PacketLengthMode.FIXED),
-        (0b00000010, 0b00000001, cc1101.options.PacketLengthMode.VARIABLE),
-        (0b01000100, 0b01000100, cc1101.options.PacketLengthMode.FIXED),
-        (0b01000100, 0b01000101, cc1101.options.PacketLengthMode.VARIABLE),
-        (0b01000101, 0b01000100, cc1101.options.PacketLengthMode.FIXED),
-        (0b01000101, 0b01000101, cc1101.options.PacketLengthMode.VARIABLE),
+        (0b00000000, 0b00000000, PacketLengthMode.FIXED),
+        (0b00000001, 0b00000000, PacketLengthMode.FIXED),
+        (0b00000001, 0b00000001, PacketLengthMode.VARIABLE),
+        (0b00000010, 0b00000000, PacketLengthMode.FIXED),
+        (0b00000010, 0b00000001, PacketLengthMode.VARIABLE),
+        (0b01000100, 0b01000100, PacketLengthMode.FIXED),
+        (0b01000100, 0b01000101, PacketLengthMode.VARIABLE),
+        (0b01000101, 0b01000100, PacketLengthMode.FIXED),
+        (0b01000101, 0b01000101, PacketLengthMode.VARIABLE),
     ),
 )
 def test_set_packet_length_mode(transceiver, pktctrl0_before, pktctrl0_after, mode):
