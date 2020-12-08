@@ -139,6 +139,13 @@ class CC1101:
 
     def __init__(self) -> None:
         self._spi = spidev.SpiDev()
+        self._spi_bus = 0
+        # > The BCM2835 core common to all Raspberry Pi devices has 3 SPI Controllers:
+        # > SPI0, with two hardware chip selects, [...]
+        # > SPI1, with three hardware chip selects, [...]
+        # > SPI2, also with three hardware chip selects, is only usable on a Compute Module [...]
+        # https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
+        self._spi_chip_select = 0
 
     @staticmethod
     def _log_chip_status_byte(chip_status: int) -> None:
@@ -432,7 +439,18 @@ class CC1101:
 
     def __enter__(self) -> "CC1101":
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
-        self._spi.open(0, 0)
+        try:
+            self._spi.open(self._spi_bus, self._spi_chip_select)
+        except PermissionError as exc:
+            raise PermissionError(
+                "Could not access /dev/spidev{}.{}".format(
+                    self._spi_bus, self._spi_chip_select
+                )
+                + "\nVerify that the current user has both read and write access."
+                + "\nOn some devices, like Raspberry Pis,"
+                + "\n\tsudo usermod -a -G spi $USER"
+                + "\nfollowed by a re-login grants sufficient permissions."
+            ) from exc
         self._spi.max_speed_hz = 55700  # empirical
         self._reset()
         partnum = self._read_status_register(StatusRegisterAddress.PARTNUM)

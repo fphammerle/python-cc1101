@@ -17,6 +17,8 @@
 
 import unittest.mock
 
+import pytest
+
 import cc1101
 import cc1101.addresses
 import cc1101.options
@@ -75,3 +77,16 @@ def test___enter__(transceiver):
             set_pa_setting_mock.assert_called_once_with(1)
             disable_whitening_mock.assert_called_once_with()
             write_burst_mock.assert_called_once_with(0x18, [0b010100])
+
+
+@pytest.mark.parametrize("bus", [0, 1])
+@pytest.mark.parametrize("chip_select", [0, 2])
+def test___enter__permission_error(transceiver, bus, chip_select):
+    transceiver._spi.open.side_effect = PermissionError("[Errno 13] Permission denied")
+    transceiver._spi_bus = bus
+    transceiver._spi_chip_select = chip_select
+    with pytest.raises(
+        PermissionError, match=r"\s/dev/spidev{}.{}\s".format(bus, chip_select)
+    ):
+        with transceiver:
+            pass
