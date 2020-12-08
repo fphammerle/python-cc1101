@@ -137,15 +137,21 @@ class CC1101:
     # > f_carrier = f_XOSC / 2**16 * (FREQ + CHAN * ((256 + CHANSPC_M) * 2**CHANSPC_E-2))
     _FREQUENCY_CONTROL_WORD_HERTZ_FACTOR = _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2 ** 16
 
-    def __init__(self) -> None:
+    def __init__(self, spi_bus: int = 0, spi_chip_select: int = 0) -> None:
         self._spi = spidev.SpiDev()
-        self._spi_bus = 0
+        self._spi_bus = int(spi_bus)
         # > The BCM2835 core common to all Raspberry Pi devices has 3 SPI Controllers:
         # > SPI0, with two hardware chip selects, [...]
         # > SPI1, with three hardware chip selects, [...]
         # > SPI2, also with three hardware chip selects, is only usable on a Compute Module [...]
+        # https://github.com/raspberrypi/documentation/blob/d41d69f8efa3667b1a8b01a669238b8bd113edc1/hardware/raspberrypi/spi/README.md#hardware
         # https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
-        self._spi_chip_select = 0
+        self._spi_chip_select = int(spi_chip_select)
+
+    @property
+    def _spi_device_path(self) -> str:
+        # https://github.com/doceme/py-spidev/blob/v3.4/spidev_module.c#L1286
+        return "/dev/spidev{}.{}".format(self._spi_bus, self._spi_chip_select)
 
     @staticmethod
     def _log_chip_status_byte(chip_status: int) -> None:
@@ -443,9 +449,7 @@ class CC1101:
             self._spi.open(self._spi_bus, self._spi_chip_select)
         except PermissionError as exc:
             raise PermissionError(
-                "Could not access /dev/spidev{}.{}".format(
-                    self._spi_bus, self._spi_chip_select
-                )
+                "Could not access {}".format(self._spi_device_path)
                 + "\nVerify that the current user has both read and write access."
                 + "\nOn some devices, like Raspberry Pis,"
                 + "\n\tsudo usermod -a -G spi $USER"

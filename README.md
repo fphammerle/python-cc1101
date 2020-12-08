@@ -21,7 +21,7 @@ $ sudo apt-get install --no-install-recommends python3-spidev
 
 ### Wiring Raspberry Pi
 
-Directly connect the following pins:
+Connect the following pins directly:
 
 |C1101|Raspberry Pi        |
 |-----|--------------------|
@@ -29,8 +29,13 @@ Directly connect the following pins:
 |SI   | MOSI (Pin 19)      |
 |SO   | MISO (Pin 21)      |
 |CSn  | CE0 (Pin 24)       |
-|SCLK | SCLK (Pin 23)      | 
+|SCLK | SCLK (Pin 23)      |
 |GND  | Ground             |
+
+If these pins are already in use,
+select a different SPI bus or chip select:
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
+([permalink](https://github.com/raspberrypi/documentation/blob/d41d69f8efa3667b1a8b01a669238b8bd113edc1/hardware/raspberrypi/spi/README.md#hardware))
 
 No resistors required. GDO0 & GDO2 are currently unused.
 
@@ -48,6 +53,10 @@ with cc1101.CC1101() as transceiver:
     print(transceiver)
     transceiver.transmit(b"\x01\xff\x00 message")
 ```
+
+In case CC1101 is connected to a different SPI bus or chip select line
+than `/dev/spidev0.0`,
+use `CC1101(spi_bus=?, spi_chip_select=?)`.
 
 In case a `PermissionError` gets raised,
 check the permissions of `/dev/spidev*`.

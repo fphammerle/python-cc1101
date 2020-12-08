@@ -26,6 +26,21 @@ import cc1101.options
 # pylint: disable=protected-access
 
 
+@pytest.mark.parametrize("bus", [0, 1])
+@pytest.mark.parametrize("chip_select", [0, 2])
+def test___init__select_device(bus, chip_select):
+    with unittest.mock.patch("spidev.SpiDev"):
+        transceiver = cc1101.CC1101(spi_bus=bus, spi_chip_select=chip_select)
+    assert transceiver._spi_bus == bus
+    assert transceiver._spi_chip_select == chip_select
+    assert transceiver._spi_device_path == "/dev/spidev{}.{}".format(bus, chip_select)
+    transceiver._spi.open.side_effect = SystemExit
+    with pytest.raises(SystemExit):
+        with transceiver:
+            pass
+    transceiver._spi.open.assert_called_once_with(bus, chip_select)
+
+
 def test__read_status_register(transceiver):
     transceiver._spi.xfer.return_value = [0, 20]
     transceiver._read_status_register(cc1101.addresses.StatusRegisterAddress.VERSION)

@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- select arbitrary device via `CC1101(spi_bus=?, spi_chip_select=?)`
 - added explanation to `PermissionError` on `SpiDev.open()`
 
 ## [2.1.0] - 2020-12-04
