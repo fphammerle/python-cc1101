@@ -443,6 +443,22 @@ class CC1101:
         frend0 |= setting_index
         self._write_burst(ConfigurationRegisterAddress.FREND0, [setting_index])
 
+    def _verify_chip(self) -> None:
+        partnum = self._read_status_register(StatusRegisterAddress.PARTNUM)
+        if partnum != self._SUPPORTED_PARTNUM:
+            raise ValueError(
+                "unexpected chip part number {} (expected: {})".format(
+                    partnum, self._SUPPORTED_PARTNUM
+                )
+            )
+        version = self._read_status_register(StatusRegisterAddress.VERSION)
+        if version != self._SUPPORTED_VERSION:
+            raise ValueError(
+                "unexpected chip version number {} (expected: {})".format(
+                    version, self._SUPPORTED_VERSION
+                )
+            )
+
     def _configure_defaults(self) -> None:
         # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
         self._set_modulation_format(ModulationFormat.ASK_OOK)
@@ -469,20 +485,7 @@ class CC1101:
             ) from exc
         self._spi.max_speed_hz = 55700  # empirical
         self._reset()
-        partnum = self._read_status_register(StatusRegisterAddress.PARTNUM)
-        if partnum != self._SUPPORTED_PARTNUM:
-            raise ValueError(
-                "unexpected chip part number {} (expected: {})".format(
-                    partnum, self._SUPPORTED_PARTNUM
-                )
-            )
-        version = self._read_status_register(StatusRegisterAddress.VERSION)
-        if version != self._SUPPORTED_VERSION:
-            raise ValueError(
-                "unexpected chip version number {} (expected: {})".format(
-                    version, self._SUPPORTED_VERSION
-                )
-            )
+        self._verify_chip()
         self._configure_defaults()
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != MainRadioControlStateMachineState.IDLE:
