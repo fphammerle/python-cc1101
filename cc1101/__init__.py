@@ -443,6 +443,18 @@ class CC1101:
         frend0 |= setting_index
         self._write_burst(ConfigurationRegisterAddress.FREND0, [setting_index])
 
+    def _configure_defaults(self) -> None:
+        # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
+        self._set_modulation_format(ModulationFormat.ASK_OOK)
+        self._set_power_amplifier_setting_index(1)
+        self._disable_data_whitening()
+        # 7:6 unused
+        # 5:4 FS_AUTOCAL: calibrate when going from IDLE to RX or TX
+        # 3:2 PO_TIMEOUT: default
+        # 1 PIN_CTRL_EN: default
+        # 0 XOSC_FORCE_ON: default
+        self._write_burst(ConfigurationRegisterAddress.MCSM0, [0b010100])
+
     def __enter__(self) -> "CC1101":
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
         try:
@@ -471,16 +483,7 @@ class CC1101:
                     version, self._SUPPORTED_VERSION
                 )
             )
-        # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
-        self._set_modulation_format(ModulationFormat.ASK_OOK)
-        self._set_power_amplifier_setting_index(1)
-        self._disable_data_whitening()
-        # 7:6 unused
-        # 5:4 FS_AUTOCAL: calibrate when going from IDLE to RX or TX
-        # 3:2 PO_TIMEOUT: default
-        # 1 PIN_CTRL_EN: default
-        # 0 XOSC_FORCE_ON: default
-        self._write_burst(ConfigurationRegisterAddress.MCSM0, [0b010100])
+        self._configure_defaults()
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != MainRadioControlStateMachineState.IDLE:
             raise ValueError("expected marcstate idle (actual: {})".format(marcstate))
