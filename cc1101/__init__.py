@@ -17,6 +17,7 @@
 
 import contextlib
 import enum
+import fcntl
 import logging
 import math
 import typing
@@ -137,7 +138,9 @@ class CC1101:
     # > f_carrier = f_XOSC / 2**16 * (FREQ + CHAN * ((256 + CHANSPC_M) * 2**CHANSPC_E-2))
     _FREQUENCY_CONTROL_WORD_HERTZ_FACTOR = _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2 ** 16
 
-    def __init__(self, spi_bus: int = 0, spi_chip_select: int = 0) -> None:
+    def __init__(
+        self, spi_bus: int = 0, spi_chip_select: int = 0, lock_spi_device: bool = False
+    ) -> None:
         self._spi = spidev.SpiDev()
         self._spi_bus = int(spi_bus)
         # > The BCM2835 core common to all Raspberry Pi devices has 3 SPI Controllers:
@@ -147,6 +150,7 @@ class CC1101:
         # https://github.com/raspberrypi/documentation/blob/d41d69f8efa3667b1a8b01a669238b8bd113edc1/hardware/raspberrypi/spi/README.md#hardware
         # https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
         self._spi_chip_select = int(spi_chip_select)
+        self._lock_spi_device = lock_spi_device
 
     @property
     def _spi_device_path(self) -> str:
@@ -483,6 +487,10 @@ class CC1101:
                 + "\n\tsudo usermod -a -G spi $USER"
                 + "\nfollowed by a re-login grants sufficient permissions."
             ) from exc
+        if self._lock_spi_device:
+            # advisory, exclusive, non-blocking
+            # lock removed in __exit__ by SpiDev.close()
+            fcntl.flock(self._spi.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         self._spi.max_speed_hz = 55700  # empirical
         self._reset()
         self._verify_chip()
