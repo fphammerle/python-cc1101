@@ -6,7 +6,7 @@ import cc1101
 
 logging.basicConfig(level=logging.INFO)
 
-with cc1101.CC1101() as transceiver:
+with cc1101.CC1101(lock_spi_device=True) as transceiver:
     print("defaults:", transceiver)
     transceiver.set_base_frequency_hertz(433.5e6)
     transceiver.set_symbol_rate_baud(600)
