@@ -141,6 +141,24 @@ class CC1101:
     def __init__(
         self, spi_bus: int = 0, spi_chip_select: int = 0, lock_spi_device: bool = False
     ) -> None:
+        """
+        lock_spi_device:
+            When True, an advisory, exclusive lock will be set on the SPI device file
+            non-blockingly via flock upon entering the context.
+            If the SPI device file is already locked (e.g., by a different process),
+            a BlockingIOError will be raised.
+            The lock will be removed automatically, when leaving the context.
+            The lock can optionally be released earlier by calling .unlock_spi_device().
+            >>> transceiver = cc1101.CC1101(lock_spi_device=True)
+            >>> # not locked
+            >>> with transceiver:
+            >>>     # locked
+            >>> # lock removed
+            >>> with transceiver:
+            >>>     # locked
+            >>>     transceiver.unlock_spi_device()
+            >>>     # lock removed
+        """
         self._spi = spidev.SpiDev()
         self._spi_bus = int(spi_bus)
         # > The BCM2835 core common to all Raspberry Pi devices has 3 SPI Controllers:
@@ -504,6 +522,29 @@ class CC1101:
         # https://docs.python.org/3/reference/datamodel.html#object.__exit__
         self._spi.close()
         return False
+
+    def unlock_spi_device(self) -> None:
+        """
+        Manually release the lock set on the SPI device file.
+
+        Alternatively, the lock will be released automatically,
+        when leaving the context.
+
+        Method fails silently, if the SPI device file is not locked.
+
+        >>> transceiver = cc1101.CC1101(lock_spi_device=True)
+        >>> # not locked
+        >>> with transceiver:
+        >>>     # locked
+        >>> # lock removed
+        >>> with transceiver:
+        >>>     # locked
+        >>>     transceiver.unlock_spi_device()
+        >>>     # lock removed
+        """
+        fileno = self._spi.fileno()
+        if fileno != -1:
+            fcntl.flock(fileno, fcntl.LOCK_UN)
 
     def get_main_radio_control_state_machine_state(
         self,

@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - option `CC1101(lock_spi_device=True)` sets an advisory, exclusive,
-  non-blocking `flock` on `/dev/spidev?.?`
+  non-blocking `flock` on the SPI device file `/dev/spidev?.?`
+- method `.unlock_spi_device()` to unlock manually
 
 ## [2.2.0] - 2020-12-08
 ### Added
