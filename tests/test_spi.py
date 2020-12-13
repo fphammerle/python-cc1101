@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import re
 import unittest.mock
 
 import pytest
@@ -59,7 +60,8 @@ def test__reset(transceiver):
     transceiver._spi.xfer.assert_called_once_with([0x30 | 0x00])
 
 
-def test___enter__(transceiver):
+@pytest.mark.parametrize("chip_version", [0x14, 0x04])
+def test___enter__(transceiver, chip_version):
     with unittest.mock.patch.object(
         transceiver, "_read_status_register"
     ) as read_status_register_mock, unittest.mock.patch.object(
@@ -79,7 +81,7 @@ def test___enter__(transceiver):
     ):
         read_status_register_mock.side_effect = lambda r: {
             cc1101.addresses.StatusRegisterAddress.PARTNUM: 0,
-            cc1101.addresses.StatusRegisterAddress.VERSION: 0x14,
+            cc1101.addresses.StatusRegisterAddress.VERSION: chip_version,
         }[r]
         with transceiver as transceiver_context:
             assert transceiver == transceiver_context
@@ -92,6 +94,26 @@ def test___enter__(transceiver):
             set_pa_setting_mock.assert_called_once_with(1)
             disable_whitening_mock.assert_called_once_with()
             write_burst_mock.assert_called_once_with(0x18, [0b010100])
+
+
+def test___enter___unsupported_chip_version(transceiver):
+    with unittest.mock.patch.object(
+        transceiver, "_read_status_register"
+    ) as read_status_register_mock, unittest.mock.patch.object(transceiver, "_reset"):
+        read_status_register_mock.side_effect = lambda r: {
+            cc1101.addresses.StatusRegisterAddress.PARTNUM: 0,
+            cc1101.addresses.StatusRegisterAddress.VERSION: 0x15,
+        }[r]
+        with pytest.raises(
+            ValueError,
+            match=r"^{}$".format(
+                re.escape(
+                    "unsupported chip version 0x15 (expected one of [0x04, 0x14])"
+                )
+            ),
+        ):
+            with transceiver:
+                pass
 
 
 @pytest.mark.parametrize("bus", [0, 1])

@@ -131,7 +131,12 @@ class CC1101:
 
     # 29.3 Status Register Details
     _SUPPORTED_PARTNUM = 0
-    _SUPPORTED_VERSION = 0x14
+    # > The two versions of the chip will behave the same.
+    # https://e2e.ti.com/support/wireless-connectivity/sub-1-ghz/f/156/p/428028/1529544#1529544
+    _SUPPORTED_VERSIONS = [
+        0x04,  #  https://github.com/fphammerle/python-cc1101/issues/15
+        0x14,
+    ]
 
     _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ = 26e6
     # see "21 Frequency Programming"
@@ -474,10 +479,11 @@ class CC1101:
                 )
             )
         version = self._read_status_register(StatusRegisterAddress.VERSION)
-        if version != self._SUPPORTED_VERSION:
+        if version not in self._SUPPORTED_VERSIONS:
             raise ValueError(
-                "unexpected chip version number {} (expected: {})".format(
-                    version, self._SUPPORTED_VERSION
+                "unsupported chip version 0x{:02x} (expected one of [{}])".format(
+                    version,
+                    ", ".join("0x{:02x}".format(v) for v in self._SUPPORTED_VERSIONS),
                 )
             )
 
