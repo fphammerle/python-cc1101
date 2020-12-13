@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.4.0] - 2020-12-13
 ### Added
 - support chip version `0x04`
 
@@ -61,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - disabled data whitening
 - automatic calibration
 
-[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/fphammerle/python-cc1101/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/fphammerle/python-cc1101/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/fphammerle/python-cc1101/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/fphammerle/python-cc1101/compare/v2.0.0...v2.1.0
