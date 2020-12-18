@@ -21,13 +21,15 @@ black = {version = "==20.8b1", markers = "python_version >= '3.6'"}
 mypy = "*"
 pylint = "*"
 pylint-import-requirements = "*"
-pytest = "*"
+#pytest = "*"
 pytest-cov = "*"
 
 # python3.5 compatibility
 isort = "<5"
 # workaround https://github.com/pytest-dev/pytest/issues/3953
 pathlib2 = {version = "*", markers="python_version < '3.6'"}
+# https://github.com/pytest-dev/pytest/commit/179f4326df2b644f0ab73f78e4770dafcbdcd89f#diff-fa602a8a75dc9dcc92261bac5f533c2a85e34fcceaff63b3a3a81d9acde2fc52R52
+pytest = "<6.2"
 # https://github.com/jaraco/zipp/commit/05a3c52b4d41690e0471a2e283cffb500dc0329a
 zipp = "<2"
 
