@@ -50,8 +50,9 @@ def _transmit():
     args = argparser.parse_args()
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
-        # format="%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s",
-        format="%(name)s:%(funcName)s:%(message)s",
+        format="%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s"
+        if args.debug
+        else "%(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S%z",
     )
     _LOGGER.debug("args=%r", args)
@@ -76,5 +77,5 @@ def _transmit():
                 transceiver.set_packet_length_bytes(len(payload))
         if args.disable_checksum:
             transceiver.disable_checksum()
-        _LOGGER.debug("transceiver=%r", transceiver)
+        _LOGGER.info("%s", transceiver)
         transceiver.transmit(payload)

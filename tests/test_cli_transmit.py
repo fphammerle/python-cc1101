@@ -146,9 +146,17 @@ def test_configure_device(
 
 
 @pytest.mark.parametrize(
-    ("args", "root_log_level"), (([""], logging.INFO), (["", "--debug"], logging.DEBUG))
+    ("args", "root_log_level", "log_format"),
+    (
+        ([""], logging.INFO, "%(message)s"),
+        (
+            ["", "--debug"],
+            logging.DEBUG,
+            "%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s",
+        ),
+    ),
 )
-def test_root_log_level(args, root_log_level):
+def test_root_log_level(args, root_log_level, log_format):
     stdin_mock = unittest.mock.MagicMock()
     stdin_mock.buffer = io.BytesIO(b"")
     with unittest.mock.patch("cc1101.CC1101"), unittest.mock.patch(
@@ -159,3 +167,28 @@ def test_root_log_level(args, root_log_level):
         cc1101._cli._transmit()
     assert logging_basic_config_mock.call_count == 1
     assert logging_basic_config_mock.call_args[1]["level"] == root_log_level
+    assert logging_basic_config_mock.call_args[1]["format"] == log_format
+
+
+@pytest.mark.parametrize("payload", (b"", b"message"))
+def test_logging(caplog, payload):
+    # pylint: disable=too-many-arguments
+    stdin_mock = unittest.mock.MagicMock()
+    stdin_mock.buffer = io.BytesIO(payload)
+    with unittest.mock.patch("sys.stdin", stdin_mock), unittest.mock.patch(
+        "sys.argv", [""]
+    ), unittest.mock.patch("cc1101.CC1101") as transceiver_mock, caplog.at_level(
+        logging.DEBUG
+    ):
+        transceiver_mock().__enter__().__str__.return_value = "dummy"
+        cc1101._cli._transmit()
+    assert caplog.record_tuples == [
+        (
+            "cc1101._cli",
+            logging.DEBUG,
+            "args=Namespace(base_frequency_hertz=None, debug=False, "
+            "disable_checksum=False, packet_length_mode=None, symbol_rate_baud=None, "
+            "sync_mode=None)",
+        ),
+        ("cc1101._cli", logging.INFO, "dummy"),
+    ]
