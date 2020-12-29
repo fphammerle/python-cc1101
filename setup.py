@@ -25,7 +25,7 @@ setuptools.setup(
     name="cc1101",
     use_scm_version=True,
     packages=setuptools.find_packages(),
-    description="Python Library to Transmit RF Signals via C1101 Transceivers",
+    description="Python Library & Command Line Tool to Transmit RF Signals via C1101 Transceivers",
     long_description=pathlib.Path(__file__).parent.joinpath("README.md").read_text(),
     long_description_content_type="text/markdown",
     author="Fabian Peter Hammerle",
@@ -57,6 +57,7 @@ setuptools.setup(
         "Topic :: Home Automation",
         "Topic :: Communications",
     ],
+    entry_points={"console_scripts": ["cc1101-transmit = cc1101._cli:_transmit"]},
     # apt install python3-spidev
     # https://github.com/doceme/py-spidev
     install_requires=["spidev"],

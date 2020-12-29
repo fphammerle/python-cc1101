@@ -6,7 +6,7 @@
 [![Compatible Python Versions](https://img.shields.io/pypi/pyversions/cc1101.svg)](https://pypi.org/project/cc1101/)
 [![DOI](https://zenodo.org/badge/292333844.svg)](https://zenodo.org/badge/latestdoi/292333844)
 
-Python Library to Transmit RF Signals via [CC1101 Transceivers](https://www.ti.com/product/CC1101)
+Python Library & Command Line Tool to Transmit RF Signals via [CC1101 Transceivers](https://www.ti.com/product/CC1101)
 
 ## Setup
 
@@ -43,6 +43,8 @@ Raspberry Pi GPIO docs: https://www.raspberrypi.org/documentation/usage/gpio/
 
 ## Usage
 
+### Library
+
 See [examples](https://github.com/fphammerle/python-cc1101/blob/master/examples/).
 
 ```python
@@ -58,9 +60,20 @@ In case CC1101 is connected to a different SPI bus or chip select line
 than `/dev/spidev0.0`,
 use `CC1101(spi_bus=?, spi_chip_select=?)`.
 
+### Command Line
+
+```sh
+$ printf '\x01\x02\x03' | cc1101-transmit -f 433920000 -r 1000
+```
+
+See `cc1101-transmit --help`.
+
+### Troubleshooting
+
 In case a `PermissionError` gets raised,
 check the permissions of `/dev/spidev*`.
 You'll probably need `sudo usermod -a -G spi $USER`,
 followed by a re-login.
 
-CC1101's docs: https://www.ti.com/lit/ds/symlink/cc1101.pdf
+Consult CC1101's offical docs for an in-depth explanation of all options:
+https://www.ti.com/lit/ds/symlink/cc1101.pdf
