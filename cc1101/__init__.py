@@ -21,6 +21,7 @@ import fcntl
 import logging
 import math
 import typing
+import warnings
 
 import spidev
 
@@ -142,6 +143,11 @@ class CC1101:
     # see "21 Frequency Programming"
     # > f_carrier = f_XOSC / 2**16 * (FREQ + CHAN * ((256 + CHANSPC_M) * 2**CHANSPC_E-2))
     _FREQUENCY_CONTROL_WORD_HERTZ_FACTOR = _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2 ** 16
+
+    # roughly estimated / tested with SDR receiver, docs specify:
+    # > can [...] be programmed for operation at other frequencies
+    # > in the 300-348 MHz, 387-464 MHz and 779-928 MHz bands.
+    _TRANSMIT_MIN_FREQUENCY_HERTZ = 281.7e6
 
     def __init__(
         self, spi_bus: int = 0, spi_chip_select: int = 0, lock_spi_device: bool = False
@@ -598,6 +604,17 @@ class CC1101:
         )
 
     def set_base_frequency_hertz(self, freq: float) -> None:
+        if freq < (self._TRANSMIT_MIN_FREQUENCY_HERTZ - 50e3):
+            # > [use] warnings.warn() in library code if the issue is avoidable
+            # > and the client application should be modified to eliminate the warning[.]
+            # > [use] logging.warning() if there is nothing the client application
+            # > can do about the situation, but the event should still be noted.
+            # https://docs.python.org/3/howto/logging.html#when-to-use-logging
+            warnings.warn(
+                "CC1101 is unable to transmit at frequencies below {:.1f} MHz".format(
+                    self._TRANSMIT_MIN_FREQUENCY_HERTZ / 1e6
+                )
+            )
         self._set_base_frequency_control_word(
             self._hertz_to_frequency_control_word(freq)
         )

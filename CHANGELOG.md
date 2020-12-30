@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - added command `cc1101-transmit` to transmit via command-line interface
+- warn when selecting frequency below supported range
 
 ## [2.4.0] - 2020-12-13
 ### Added

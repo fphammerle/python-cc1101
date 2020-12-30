@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import unittest.mock
+import warnings
 
 import pytest
 
@@ -373,3 +374,30 @@ def test_set_packet_length_mode(transceiver, pktctrl0_before, pktctrl0_after, mo
     ):
         transceiver.set_packet_length_mode(mode)
     xfer_mock.assert_called_once_with([0x08 | 0x40, pktctrl0_after])
+
+
+@pytest.mark.parametrize(
+    ("freq_hz", "warn"),
+    (
+        (100e6, True),
+        (281.6e6, True),
+        (281.65e6, False),  # within tolerance
+        (281.7e6, False),
+        (433.92e6, False),
+    ),
+)
+def test_set_base_frequency_hertz_low_warning(transceiver, freq_hz, warn):
+    with unittest.mock.patch.object(
+        transceiver, "_set_base_frequency_control_word"
+    ) as set_control_word_mock:
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            transceiver.set_base_frequency_hertz(freq_hz)
+    assert set_control_word_mock.call_count == 1
+    if warn:
+        assert len(caught_warnings) == 1
+        assert (
+            str(caught_warnings[0].message)
+            == "CC1101 is unable to transmit at frequencies below 281.7 MHz"
+        )
+    else:
+        assert not caught_warnings
