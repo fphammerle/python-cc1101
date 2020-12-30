@@ -77,12 +77,12 @@ class _ReceivedPacket:  # unstable
     def __init__(
         self,
         # *,
-        data: bytes,
+        payload: bytes,
         rssi_index: int,  # byte
         checksum_valid: bool,
         link_quality_indicator: int,  # 7bit
     ):
-        self.data = data
+        self.payload = payload
         self._rssi_index = rssi_index
         assert 0 <= rssi_index < (1 << 8), rssi_index
         self.checksum_valid = checksum_valid
@@ -104,7 +104,7 @@ class _ReceivedPacket:  # unstable
         return "{}(RSSI {:.0f}dBm, 0x{})".format(
             type(self).__name__,
             self.rssi_dbm,
-            "".join("{:02x}".format(b) for b in self.data),
+            "".join("{:02x}".format(b) for b in self.payload),
         )
 
 
@@ -866,7 +866,7 @@ class CC1101:
             return None
         buffer = self._read_burst(start_register=FIFORegisterAddress.RX, length=rxbytes)
         return _ReceivedPacket(
-            data=bytes(buffer[:-2]),
+            payload=bytes(buffer[:-2]),
             rssi_index=buffer[-2],
             checksum_valid=bool(buffer[-1] >> 7),
             link_quality_indicator=buffer[-1] & 0b0111111,

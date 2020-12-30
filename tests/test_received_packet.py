@@ -18,14 +18,17 @@ import cc1101
 )
 def test_rss_dbm(rssi_index, rssi_dbm):
     packet = cc1101._ReceivedPacket(
-        data=b"\0", rssi_index=rssi_index, checksum_valid=True, link_quality_indicator=0
+        payload=b"\0",
+        rssi_index=rssi_index,
+        checksum_valid=True,
+        link_quality_indicator=0,
     )
     assert packet.rssi_dbm == pytest.approx(rssi_dbm)
 
 
 def test___str__():
     packet = cc1101._ReceivedPacket(
-        data=b"\0\x12\x34",
+        payload=b"\0\x12\x34",
         rssi_index=204,
         checksum_valid=True,
         link_quality_indicator=0,

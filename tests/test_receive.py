@@ -11,9 +11,9 @@ def test__enable_receive_mode(transceiver):
     transceiver._spi.xfer.assert_called_once_with([0x34 | 0x00])
 
 
-@pytest.mark.parametrize("data", [b"\0", b"\x12\x45\x56"])
-def test__get_received_packet(transceiver, data):
-    fifo_buffer = list(data) + [128, (1 << 7) | 42]
+@pytest.mark.parametrize("payload", [b"\0", b"\x12\x45\x56"])
+def test__get_received_packet(transceiver, payload):
+    fifo_buffer = list(payload) + [128, (1 << 7) | 42]
     with unittest.mock.patch.object(
         transceiver, "_read_status_register", return_value=len(fifo_buffer)
     ) as read_status_register, unittest.mock.patch.object(
@@ -24,7 +24,7 @@ def test__get_received_packet(transceiver, data):
     read_burst_mock.assert_called_once_with(
         start_register=0x3F, length=len(fifo_buffer)
     )
-    assert received_packet.data == data
+    assert received_packet.payload == payload
     assert received_packet._rssi_index == 128
     assert received_packet.checksum_valid
     assert received_packet.link_quality_indicator == 42
