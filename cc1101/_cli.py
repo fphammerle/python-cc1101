@@ -18,6 +18,7 @@
 import argparse
 import logging
 import sys
+import typing
 
 import cc1101
 import cc1101.options
@@ -54,6 +55,35 @@ def _init_logging(args: argparse.Namespace) -> None:
     )
 
 
+def _configure_via_args(
+    transceiver: cc1101.CC1101,
+    args: argparse.Namespace,
+    packet_length_if_fixed: typing.Optional[int],
+) -> None:
+    if args.base_frequency_hertz:
+        transceiver.set_base_frequency_hertz(args.base_frequency_hertz)
+    if args.symbol_rate_baud:
+        transceiver.set_symbol_rate_baud(args.symbol_rate_baud)
+    if args.sync_mode:
+        transceiver.set_sync_mode(
+            cc1101.options.SyncMode[args.sync_mode.upper().replace("-", "_")]
+        )
+    if args.packet_length_mode:
+        packet_length_mode = cc1101.options.PacketLengthMode[
+            args.packet_length_mode.upper()
+        ]
+        # default: variable length
+        transceiver.set_packet_length_mode(packet_length_mode)
+        # default: 255 (maximum)
+        if (
+            packet_length_if_fixed is not None
+            and packet_length_mode == cc1101.options.PacketLengthMode.FIXED
+        ):
+            transceiver.set_packet_length_bytes(packet_length_if_fixed)
+    if args.disable_checksum:
+        transceiver.disable_checksum()
+
+
 def _transmit():
     argparser = argparse.ArgumentParser(
         description="Transmits the payload provided via standard input (stdin)"
@@ -68,24 +98,8 @@ def _transmit():
     # configure transceiver after reading from stdin
     # to avoid delay between configuration and transmission if pipe is slow
     with cc1101.CC1101(lock_spi_device=True) as transceiver:
-        if args.base_frequency_hertz:
-            transceiver.set_base_frequency_hertz(args.base_frequency_hertz)
-        if args.symbol_rate_baud:
-            transceiver.set_symbol_rate_baud(args.symbol_rate_baud)
-        if args.sync_mode:
-            transceiver.set_sync_mode(
-                cc1101.options.SyncMode[args.sync_mode.upper().replace("-", "_")]
-            )
-        if args.packet_length_mode:
-            packet_length_mode = cc1101.options.PacketLengthMode[
-                args.packet_length_mode.upper()
-            ]
-            # default: variable length
-            transceiver.set_packet_length_mode(packet_length_mode)
-            # default: 255 (maximum)
-            if packet_length_mode == cc1101.options.PacketLengthMode.FIXED:
-                transceiver.set_packet_length_bytes(len(payload))
-        if args.disable_checksum:
-            transceiver.disable_checksum()
+        _configure_via_args(
+            transceiver=transceiver, args=args, packet_length_if_fixed=len(payload)
+        )
         _LOGGER.info("%s", transceiver)
         transceiver.transmit(payload)
