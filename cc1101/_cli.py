@@ -56,6 +56,9 @@ def _transmit():
         datefmt="%Y-%m-%dT%H:%M:%S%z",
     )
     _LOGGER.debug("args=%r", args)
+    payload = sys.stdin.buffer.read()
+    # configure transceiver after reading from stdin
+    # to avoid delay between configuration and transmission if pipe is slow
     with cc1101.CC1101() as transceiver:
         if args.base_frequency_hertz:
             transceiver.set_base_frequency_hertz(args.base_frequency_hertz)
@@ -65,7 +68,6 @@ def _transmit():
             transceiver.set_sync_mode(
                 cc1101.options.SyncMode[args.sync_mode.upper().replace("-", "_")]
             )
-        payload = sys.stdin.buffer.read()
         if args.packet_length_mode:
             packet_length_mode = cc1101.options.PacketLengthMode[
                 args.packet_length_mode.upper()
