@@ -57,7 +57,12 @@ setuptools.setup(
         "Topic :: Home Automation",
         "Topic :: Communications",
     ],
-    entry_points={"console_scripts": ["cc1101-transmit = cc1101._cli:_transmit"]},
+    entry_points={
+        "console_scripts": [
+            "cc1101-export-config = cc1101._cli:_export_config",
+            "cc1101-transmit = cc1101._cli:_transmit",
+        ]
+    },
     # apt install python3-spidev
     # https://github.com/doceme/py-spidev
     install_requires=["spidev"],

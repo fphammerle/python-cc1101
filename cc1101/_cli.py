@@ -84,6 +84,35 @@ def _configure_via_args(
         transceiver.disable_checksum()
 
 
+def _export_config():
+    argparser = argparse.ArgumentParser(
+        description="Export values in CC1101's configuration registers"
+        " after applying settings specified via command-line arguments & options",
+        allow_abbrev=False,
+    )
+    _add_common_args(argparser)
+    argparser.add_argument("--format", choices=["python-list"], default="python-list")
+    args = argparser.parse_args()
+    _init_logging(args)
+    _LOGGER.debug("args=%r", args)
+    with cc1101.CC1101(lock_spi_device=True) as transceiver:
+        _configure_via_args(
+            transceiver=transceiver, args=args, packet_length_if_fixed=None
+        )
+        _LOGGER.info("%s", transceiver)
+        print("[")
+        for register_index, (register, value) in enumerate(
+            transceiver.get_configuration_register_values().items()
+        ):
+            assert register_index == register.value
+            print(
+                "0b{value:08b}, # 0x{value:02x} {register_name}".format(
+                    value=value, register_name=register.name
+                )
+            )
+        print("]")
+
+
 def _transmit():
     argparser = argparse.ArgumentParser(
         description="Transmits the payload provided via standard input (stdin)"
