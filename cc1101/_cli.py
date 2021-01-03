@@ -25,12 +25,7 @@ import cc1101.options
 _LOGGER = logging.getLogger(__name__)
 
 
-def _transmit():
-    argparser = argparse.ArgumentParser(
-        description="Transmits the payload provided via standard input (stdin)"
-        " OOK-modulated in big-endian bit order.",
-        allow_abbrev=False,
-    )
+def _add_common_args(argparser: argparse.ArgumentParser) -> None:
     argparser.add_argument("-f", "--base-frequency-hertz", type=int)
     argparser.add_argument("-r", "--symbol-rate-baud", type=int)
     argparser.add_argument(
@@ -47,7 +42,9 @@ def _transmit():
     )
     argparser.add_argument("--disable-checksum", action="store_true")
     argparser.add_argument("-d", "--debug", action="store_true")
-    args = argparser.parse_args()
+
+
+def _init_logging(args: argparse.Namespace) -> None:
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
         format="%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s"
@@ -55,6 +52,17 @@ def _transmit():
         else "%(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S%z",
     )
+
+
+def _transmit():
+    argparser = argparse.ArgumentParser(
+        description="Transmits the payload provided via standard input (stdin)"
+        " OOK-modulated in big-endian bit order.",
+        allow_abbrev=False,
+    )
+    _add_common_args(argparser)
+    args = argparser.parse_args()
+    _init_logging(args)
     _LOGGER.debug("args=%r", args)
     payload = sys.stdin.buffer.read()
     # configure transceiver after reading from stdin
