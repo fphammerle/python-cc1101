@@ -110,7 +110,7 @@ def test_configure_device(
         with unittest.mock.patch("sys.stdin", stdin_mock):
             with unittest.mock.patch("sys.argv", args):
                 cc1101._cli._transmit()
-    transceiver_mock.assert_called_once_with()
+    transceiver_mock.assert_called_once_with(lock_spi_device=True)
     if base_frequency_hertz is None:
         transceiver_mock().__enter__().set_base_frequency_hertz.assert_not_called()
     else:

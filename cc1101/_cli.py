@@ -59,7 +59,7 @@ def _transmit():
     payload = sys.stdin.buffer.read()
     # configure transceiver after reading from stdin
     # to avoid delay between configuration and transmission if pipe is slow
-    with cc1101.CC1101() as transceiver:
+    with cc1101.CC1101(lock_spi_device=True) as transceiver:
         if args.base_frequency_hertz:
             transceiver.set_base_frequency_hertz(args.base_frequency_hertz)
         if args.symbol_rate_baud:

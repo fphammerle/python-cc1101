@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - `cc1101-transmit` command:
+  - set `flock` on SPI device file to avoid race conditions,
+    if other processes attempt to use the same transceiver
   - configure transceiver after reading from stdin
     to avoid delay between configuration and transmission, if pipe is slow
 
