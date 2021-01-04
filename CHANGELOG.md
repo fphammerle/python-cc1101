@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.6.0] - 2021-01-04
 ### Added
 - command `cc1101-export-config` to export / inspect config register values
   after configuration via command-line arguments & options matching `cc1101-transmit`
@@ -78,7 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - disabled data whitening
 - automatic calibration
 
-[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.6.0...HEAD
+[2.6.0]: https://github.com/fphammerle/python-cc1101/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/fphammerle/python-cc1101/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/fphammerle/python-cc1101/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/fphammerle/python-cc1101/compare/v2.2.0...v2.3.0
