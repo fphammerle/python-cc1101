@@ -19,9 +19,27 @@ import unittest.mock
 
 import pytest
 
-from cc1101.options import SyncMode
+from cc1101.options import ModulationFormat, SyncMode
 
 # pylint: disable=protected-access
+
+
+@pytest.mark.parametrize(
+    ("mdmcfg2", "mod_format"),
+    (
+        (0b00000010, ModulationFormat.FSK2),
+        (0b10001110, ModulationFormat.FSK2),
+        (0b10011110, ModulationFormat.GFSK),
+        (0b10111110, ModulationFormat.ASK_OOK),
+        (0b11001110, ModulationFormat.FSK4),
+        (0b11001001, ModulationFormat.FSK4),
+        (0b11111001, ModulationFormat.MSK),
+    ),
+)
+def test_get_modulation_format(transceiver, mdmcfg2, mod_format):
+    transceiver._spi.xfer.return_value = [15, mdmcfg2]
+    assert transceiver.get_modulation_format() == mod_format
+    transceiver._spi.xfer.assert_called_once_with([0x12 | 0x80, 0])
 
 
 @pytest.mark.parametrize(
