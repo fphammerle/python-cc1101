@@ -236,28 +236,6 @@ def test_set_preamble_length_bytes_invalid(transceiver, length):
         transceiver.set_preamble_length_bytes(length)
 
 
-def test_get_packet_length_bytes(transceiver):
-    xfer_mock = transceiver._spi.xfer
-    xfer_mock.return_value = [0, 8]
-    assert transceiver.get_packet_length_bytes() == 8
-    xfer_mock.assert_called_once_with([0x06 | 0x80, 0])
-
-
-@pytest.mark.parametrize("packet_length", [21])
-def test_set_packet_length_bytes(transceiver, packet_length):
-    xfer_mock = transceiver._spi.xfer
-    xfer_mock.return_value = [15, 15]
-    transceiver.set_packet_length_bytes(packet_length)
-    xfer_mock.assert_called_once_with([0x06 | 0x40, packet_length])
-
-
-@pytest.mark.parametrize("packet_length", [-21, 0, 256, 1024])
-def test_set_packet_length_bytes_fail(transceiver, packet_length):
-    with pytest.raises(Exception):
-        transceiver.set_packet_length_bytes(packet_length)
-    transceiver._spi.xfer.assert_not_called()
-
-
 @pytest.mark.parametrize(
     ("freq_hz", "warn"),
     (
