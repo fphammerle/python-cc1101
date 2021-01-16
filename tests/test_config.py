@@ -21,7 +21,7 @@ import warnings
 import pytest
 
 import cc1101
-from cc1101.options import PacketLengthMode, SyncMode
+from cc1101.options import PacketLengthMode
 
 # pylint: disable=protected-access
 
@@ -180,55 +180,6 @@ def test__symbol_rate_real_to_floating_point(mantissa, exponent, real):
         mantissa,
         exponent,
     )
-
-
-@pytest.mark.parametrize(
-    ("mdmcfg2", "sync_mode"),
-    [
-        (0b00000000, SyncMode.NO_PREAMBLE_AND_SYNC_WORD),
-        (0b00000001, SyncMode.TRANSMIT_16_MATCH_15_BITS),
-        (0b00000010, SyncMode.TRANSMIT_16_MATCH_16_BITS),
-        (0b00000011, SyncMode.TRANSMIT_32_MATCH_30_BITS),
-        (0b00000110, SyncMode.TRANSMIT_16_MATCH_16_BITS),
-        (0b00000111, SyncMode.TRANSMIT_32_MATCH_30_BITS),
-        (0b00001100, SyncMode.NO_PREAMBLE_AND_SYNC_WORD),
-        (0b01101011, SyncMode.TRANSMIT_32_MATCH_30_BITS),
-        (0b01101111, SyncMode.TRANSMIT_32_MATCH_30_BITS),
-    ],
-)
-def test_get_sync_mode(transceiver, mdmcfg2, sync_mode):
-    transceiver._spi.xfer.return_value = [15, mdmcfg2]
-    assert transceiver.get_sync_mode() == sync_mode
-    transceiver._spi.xfer.assert_called_once_with([0x12 | 0x80, 0])
-
-
-@pytest.mark.parametrize(
-    ("mdmcfg2_before", "mdmcfg2_after", "sync_mode", "threshold_enabled"),
-    [
-        (0b00000010, 0b00000000, SyncMode.NO_PREAMBLE_AND_SYNC_WORD, None),
-        (0b00000010, 0b00000001, SyncMode.TRANSMIT_16_MATCH_15_BITS, None),
-        (0b00000010, 0b00000010, SyncMode.TRANSMIT_16_MATCH_16_BITS, None),
-        (0b00000010, 0b00000011, SyncMode.TRANSMIT_32_MATCH_30_BITS, None),
-        (0b01101110, 0b01101111, SyncMode.TRANSMIT_32_MATCH_30_BITS, None),
-        (0b00000010, 0b00000110, SyncMode.TRANSMIT_16_MATCH_16_BITS, True),
-        (0b00000010, 0b00000111, SyncMode.TRANSMIT_32_MATCH_30_BITS, True),
-        (0b01101110, 0b01101111, SyncMode.TRANSMIT_32_MATCH_30_BITS, True),
-        (0b00000010, 0b00000010, SyncMode.TRANSMIT_16_MATCH_16_BITS, False),
-        (0b00000010, 0b00000011, SyncMode.TRANSMIT_32_MATCH_30_BITS, False),
-        (0b01101110, 0b01101011, SyncMode.TRANSMIT_32_MATCH_30_BITS, False),
-    ],
-)
-def test_set_sync_mode(
-    transceiver, mdmcfg2_before, mdmcfg2_after, sync_mode, threshold_enabled
-):
-    transceiver._spi.xfer.return_value = [15, 15]
-    with unittest.mock.patch.object(
-        transceiver, "_read_single_byte", return_value=mdmcfg2_before
-    ):
-        transceiver.set_sync_mode(
-            sync_mode, _carrier_sense_threshold_enabled=threshold_enabled
-        )
-    transceiver._spi.xfer.assert_called_once_with([0x12 | 0x40, mdmcfg2_after])
 
 
 @pytest.mark.parametrize(
