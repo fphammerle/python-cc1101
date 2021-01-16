@@ -43,6 +43,29 @@ def test_get_modulation_format(transceiver, mdmcfg2, mod_format):
 
 
 @pytest.mark.parametrize(
+    ("mdmcfg2_before", "mdmcfg2_after", "mod_format"),
+    [
+        (0b00000010, 0b00000010, ModulationFormat.FSK2),
+        (0b11111111, 0b10001111, ModulationFormat.FSK2),
+        (0b00000010, 0b00010010, ModulationFormat.GFSK),
+        (0b00000010, 0b00110010, ModulationFormat.ASK_OOK),
+        (0b00000010, 0b01000010, ModulationFormat.FSK4),
+        (0b01110101, 0b01000101, ModulationFormat.FSK4),
+        (0b11111111, 0b11001111, ModulationFormat.FSK4),
+        (0b00000010, 0b01110010, ModulationFormat.MSK),
+        (0b11111111, 0b11111111, ModulationFormat.MSK),
+    ],
+)
+def test__set_modulation_format(transceiver, mdmcfg2_before, mdmcfg2_after, mod_format):
+    transceiver._spi.xfer.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=mdmcfg2_before
+    ):
+        transceiver._set_modulation_format(mod_format)
+    transceiver._spi.xfer.assert_called_once_with([0x12 | 0x40, mdmcfg2_after])
+
+
+@pytest.mark.parametrize(
     ("mdmcfg2", "sync_mode"),
     [
         (0b00000000, SyncMode.NO_PREAMBLE_AND_SYNC_WORD),

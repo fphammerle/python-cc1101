@@ -364,7 +364,7 @@ class CC1101:
 
     def _set_modulation_format(self, modulation_format: ModulationFormat) -> None:
         mdmcfg2 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG2)
-        mdmcfg2 &= ~(modulation_format << 4)
+        mdmcfg2 &= 0b10001111
         mdmcfg2 |= modulation_format << 4
         self._write_burst(ConfigurationRegisterAddress.MDMCFG2, [mdmcfg2])
 
