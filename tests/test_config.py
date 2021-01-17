@@ -113,15 +113,6 @@ def test__set_filter_bandwidth(
 
 
 @pytest.mark.parametrize(
-    ("mdmcfg4", "symbol_rate_exponent"), [(0b1001100, 12), (0b10011001, 9)]
-)
-def test__get_symbol_rate_exponent(transceiver, mdmcfg4, symbol_rate_exponent):
-    transceiver._spi.xfer.return_value = [15, mdmcfg4]
-    assert transceiver._get_symbol_rate_exponent() == symbol_rate_exponent
-    transceiver._spi.xfer.assert_called_once_with([0x10 | 0x80, 0])
-
-
-@pytest.mark.parametrize(
     ("mdmcfg3", "symbol_rate_mantissa"), [(0b00100010, 34), (0b10101010, 170)]
 )
 def test__get_symbol_rate_mantissa(transceiver, mdmcfg3, symbol_rate_mantissa):
