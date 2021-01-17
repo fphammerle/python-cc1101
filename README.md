@@ -2,6 +2,7 @@
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![CI Pipeline Status](https://github.com/fphammerle/python-cc1101/workflows/tests/badge.svg)](https://github.com/fphammerle/python-cc1101/actions)
+[![Coverage Status](https://coveralls.io/repos/github/fphammerle/python-cc1101/badge.svg?branch=master)](https://coveralls.io/github/fphammerle/python-cc1101?branch=master)
 [![Last Release](https://img.shields.io/pypi/v/cc1101.svg)](https://pypi.org/project/cc1101/#history)
 [![Compatible Python Versions](https://img.shields.io/pypi/pyversions/cc1101.svg)](https://pypi.org/project/cc1101/)
 [![DOI](https://zenodo.org/badge/292333844.svg)](https://zenodo.org/badge/latestdoi/292333844)
