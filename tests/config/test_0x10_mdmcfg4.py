@@ -23,6 +23,44 @@ import pytest
 
 
 @pytest.mark.parametrize(
+    ("mdmcfg4", "real"),
+    [
+        (0b10001100, 203e3),
+        (0b10001010, 203e3),
+        (0b10001110, 203e3),
+        (0b11111100, 58e3),
+        (0b01011100, 325e3),
+    ],
+)
+def test__get_filter_bandwidth_hertz(transceiver, mdmcfg4, real):
+    transceiver._spi.xfer.return_value = [15, mdmcfg4]
+    assert transceiver._get_filter_bandwidth_hertz() == pytest.approx(real, rel=1e-3)
+    transceiver._spi.xfer.assert_called_once_with([0x10 | 0x80, 0])
+
+
+@pytest.mark.parametrize(
+    ("mdmcfg4_before", "mdmcfg4_after", "exponent", "mantissa"),
+    [
+        (0b00001010, 0b10111010, 0b10, 0b11),
+        (0b00001100, 0b01001100, 0b01, 0b00),
+        (0b00001100, 0b10111100, 0b10, 0b11),
+        (0b00001100, 0b11011100, 0b11, 0b01),
+        (0b01011100, 0b11011100, 0b11, 0b01),
+        (0b11111100, 0b11011100, 0b11, 0b01),
+    ],
+)
+def test__set_filter_bandwidth(
+    transceiver, mdmcfg4_before, mdmcfg4_after, exponent, mantissa
+):
+    transceiver._spi.xfer.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=mdmcfg4_before
+    ):
+        transceiver._set_filter_bandwidth(mantissa=mantissa, exponent=exponent)
+    transceiver._spi.xfer.assert_called_once_with([0x10 | 0x40, mdmcfg4_after])
+
+
+@pytest.mark.parametrize(
     ("mdmcfg4", "exponent"),
     (
         (0b10001100, 12),

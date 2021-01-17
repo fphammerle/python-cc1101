@@ -270,9 +270,13 @@ class CC1101:
 
     def _get_filter_bandwidth_hertz(self) -> float:
         """
+        MDMCFG4.CHANBW_E & MDMCFG4.CHANBW_M
+
+        > [...] decimation ratio for the delta-sigma ADC input stream
+        > and thus the channel bandwidth.
+
         See "13 Receiver Channel Filter Bandwidth"
 
-        MDMCFG4.CHANBW_E & MDMCFG4.CHANBW_M
         """
         mdmcfg4 = self._read_single_byte(ConfigurationRegisterAddress.MDMCFG4)
         return self._filter_bandwidth_floating_point_to_real(
