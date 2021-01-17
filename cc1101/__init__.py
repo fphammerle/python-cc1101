@@ -472,9 +472,9 @@ class CC1101:
         > shall be programmed to index 0 and 1 respectively.
         """
         frend0 = self._read_single_byte(ConfigurationRegisterAddress.FREND0)
-        frend0 &= 0b000
+        frend0 &= 0b11111000
         frend0 |= setting_index
-        self._write_burst(ConfigurationRegisterAddress.FREND0, [setting_index])
+        self._write_burst(ConfigurationRegisterAddress.FREND0, [frend0])
 
     def _verify_chip(self) -> None:
         partnum = self._read_status_register(StatusRegisterAddress.PARTNUM)
@@ -494,6 +494,7 @@ class CC1101:
             )
 
     def _configure_defaults(self) -> None:
+        # next major/breaking release will probably stick closer to CC1101's defaults
         # 6:4 MOD_FORMAT: OOK (default: 2-FSK)
         self._set_modulation_format(ModulationFormat.ASK_OOK)
         self._set_power_amplifier_setting_index(1)
