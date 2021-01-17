@@ -66,6 +66,24 @@ def test__set_modulation_format(transceiver, mdmcfg2_before, mdmcfg2_after, mod_
 
 
 @pytest.mark.parametrize(
+    ("mdmcfg2_before", "mdmcfg2_after"),
+    [
+        (0b00000010, 0b00001010),
+        (0b00001010, 0b00001010),
+        (0b11110111, 0b11111111),
+        (0b11111111, 0b11111111),
+    ],
+)
+def test_enable_manchester_code(transceiver, mdmcfg2_before, mdmcfg2_after):
+    transceiver._spi.xfer.return_value = [15, 15]
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=mdmcfg2_before
+    ):
+        transceiver.enable_manchester_code()
+    transceiver._spi.xfer.assert_called_once_with([0x12 | 0x40, mdmcfg2_after])
+
+
+@pytest.mark.parametrize(
     ("mdmcfg2", "sync_mode"),
     [
         (0b00000000, SyncMode.NO_PREAMBLE_AND_SYNC_WORD),
