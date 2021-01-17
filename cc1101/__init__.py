@@ -1,4 +1,4 @@
-# python-cc1101 - Python Library to Transmit RF Signals via C1101 Transceivers
+# python-cc1101 - Python Library to Transmit RF Signals via CC1101 Transceivers
 #
 # Copyright (C) 2020 Fabian Peter Hammerle <fabian@hammerle.me>
 #
