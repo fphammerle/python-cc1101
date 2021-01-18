@@ -80,6 +80,9 @@ _SYMBOL_RATE_MANTISSA_EXPONENT_REAL_PARAMS = [
     (34, 12, 115051),
     (34, 12 + 1, 115051 * 2),
     (34, 12 - 1, 115051 / 2),
+    # > If DRATE_M is rounded to the nearest integer and becomes 256,
+    # > increment DRATE_E and use DRATE_M = 0.
+    (0, 13, 203124),
 ]
 
 
