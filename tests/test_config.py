@@ -106,6 +106,32 @@ def test__symbol_rate_real_to_floating_point(mantissa, exponent, real):
 
 
 @pytest.mark.parametrize(
+    ("mantissa", "exponent", "real"), _SYMBOL_RATE_MANTISSA_EXPONENT_REAL_PARAMS
+)
+def test_get_symbol_rate_baud(transceiver, mantissa, exponent, real):
+    with unittest.mock.patch.object(
+        transceiver, "_get_symbol_rate_mantissa", return_value=mantissa
+    ), unittest.mock.patch.object(
+        transceiver, "_get_symbol_rate_exponent", return_value=exponent
+    ):
+        assert transceiver.get_symbol_rate_baud() == pytest.approx(real, rel=1e-5)
+
+
+@pytest.mark.parametrize(
+    ("mantissa", "exponent", "real"), _SYMBOL_RATE_MANTISSA_EXPONENT_REAL_PARAMS
+)
+def test_set_symbol_rate_baud(transceiver, mantissa, exponent, real):
+    with unittest.mock.patch.object(
+        transceiver, "_set_symbol_rate_mantissa"
+    ) as set_mantissa_mock, unittest.mock.patch.object(
+        transceiver, "_set_symbol_rate_exponent"
+    ) as set_exponent_mock:
+        transceiver.set_symbol_rate_baud(real)
+    set_mantissa_mock.assert_called_once_with(mantissa)
+    set_exponent_mock.assert_called_once_with(exponent)
+
+
+@pytest.mark.parametrize(
     ("freq_hz", "warn"),
     (
         (100e6, True),
