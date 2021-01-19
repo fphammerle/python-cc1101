@@ -532,7 +532,9 @@ class CC1101:
         self._configure_defaults()
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != MainRadioControlStateMachineState.IDLE:
-            raise ValueError("expected marcstate idle (actual: {})".format(marcstate))
+            raise ValueError(
+                "expected marcstate idle (actual: {})".format(marcstate.name)
+            )
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):  # -> typing.Literal[False]

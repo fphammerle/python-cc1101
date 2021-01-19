@@ -139,3 +139,20 @@ def test___enter__permission_error(transceiver, bus, chip_select):
     ):
         with transceiver:
             pass
+
+
+def test___enter__non_idle(transceiver):
+    with unittest.mock.patch.object(
+        transceiver,
+        "get_main_radio_control_state_machine_state",
+        return_value=cc1101.MainRadioControlStateMachineState.TX,
+    ), unittest.mock.patch.object(transceiver, "_reset"), unittest.mock.patch.object(
+        transceiver, "_verify_chip"
+    ), unittest.mock.patch.object(
+        transceiver, "_configure_defaults"
+    ):
+        with pytest.raises(
+            ValueError, match=r"^expected marcstate idle \(actual: TX\)$"
+        ):
+            with transceiver:
+                pass
