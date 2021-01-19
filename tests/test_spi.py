@@ -96,6 +96,18 @@ def test___enter__(transceiver, chip_version):
             write_burst_mock.assert_called_once_with(0x18, [0b010100])
 
 
+def test___enter___unsupported_partnum(transceiver):
+    with unittest.mock.patch.object(
+        transceiver, "_read_status_register"
+    ) as read_status_register_mock, unittest.mock.patch.object(transceiver, "_reset"):
+        read_status_register_mock.side_effect = lambda r: {
+            cc1101.addresses.StatusRegisterAddress.PARTNUM: 21
+        }[r]
+        with pytest.raises(ValueError, match=r"^unexpected chip part number "):
+            with transceiver:
+                pass
+
+
 def test___enter___unsupported_chip_version(transceiver):
     with unittest.mock.patch.object(
         transceiver, "_read_status_register"
