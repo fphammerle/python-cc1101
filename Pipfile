@@ -25,6 +25,8 @@ pylint-import-requirements = "*"
 pytest-cov = "*"
 
 # python3.5 compatibility
+# https://github.com/python/importlib_metadata/commit/107f9029fd5807c6579b881db19e11a0488f0675
+importlib-metadata = "<3"
 isort = "<5"
 # workaround https://github.com/pytest-dev/pytest/issues/3953
 pathlib2 = {version = "*", markers="python_version < '3.6'"}
