@@ -87,6 +87,11 @@ class StatusRegisterAddress(enum.IntEnum):
     RCCTRL0_STATUS = 0x3D  # Last RC oscillator calibration result
 
 
+class PatableAddress(enum.IntEnum):
+    # see "10.6 PATABLE Access"
+    PATABLE = 0x3E
+
+
 class FIFORegisterAddress(enum.IntEnum):
     # see "10.5 FIFO Access"
     # > When the R/W-bit is zero, the TX FIFO is accessed,

@@ -29,6 +29,7 @@ from cc1101.addresses import (
     StrobeAddress,
     ConfigurationRegisterAddress,
     StatusRegisterAddress,
+    PatableAddress,
     FIFORegisterAddress,
 )
 from cc1101.options import PacketLengthMode, SyncMode, ModulationFormat
@@ -108,6 +109,9 @@ class _ReceivedPacket:  # unstable
         )
 
 
+_PatableSetting = typing.Tuple[int, ...]
+
+
 class CC1101:
 
     # pylint: disable=too-many-public-methods
@@ -148,6 +152,9 @@ class CC1101:
     # > can [...] be programmed for operation at other frequencies
     # > in the 300-348 MHz, 387-464 MHz and 779-928 MHz bands.
     _TRANSMIT_MIN_FREQUENCY_HERTZ = 281.7e6
+
+    # > The PATABLE is an 8-byte table that defines the PA control settings [...]
+    _PATABLE_LENGTH_BYTES = 8
 
     def __init__(
         self, spi_bus: int = 0, spi_chip_select: int = 0, lock_spi_device: bool = False
@@ -211,7 +218,9 @@ class CC1101:
 
     def _read_burst(
         self,
-        start_register: typing.Union[ConfigurationRegisterAddress, FIFORegisterAddress],
+        start_register: typing.Union[
+            ConfigurationRegisterAddress, PatableAddress, FIFORegisterAddress
+        ],
         length: int,
     ) -> typing.List[int]:
         response = self._spi.xfer([start_register | self._READ_BURST] + [0] * length)
@@ -772,6 +781,18 @@ class CC1101:
         pktctrl0 |= mode
         self._write_burst(
             start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
+        )
+
+    def _get_patable(self) -> _PatableSetting:
+        """
+        see "10.6 PATABLE Access" and "24 Output Power Programming"
+
+        default: (0xC6, 0, 0, 0, 0, 0, 0, 0)
+        """
+        return tuple(
+            self._read_burst(
+                start_register=PatableAddress.PATABLE, length=self._PATABLE_LENGTH_BYTES
+            )
         )
 
     def _flush_tx_fifo_buffer(self) -> None:
