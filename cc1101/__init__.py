@@ -842,6 +842,9 @@ class CC1101:
     @contextlib.contextmanager
     def asynchronous_transmission(self) -> typing.Iterator[Pin]:
         """
+        > [...] the GDO0 pin is used for data input [...]
+        > The CC1101 modulator samples the level of the asynchronous input
+        > 8 times faster than the programmed data rate.
         see "27.1 Asynchronous Serial Operation"
 
         >>> with cc1101.CC1101() as transceiver:

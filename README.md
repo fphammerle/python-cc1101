@@ -32,11 +32,13 @@ Connect the following pins directly:
 |CSn   | CE0 (Pin 24)       |
 |SCLK  | SCLK (Pin 23)      |
 |GDO2\*| Any GPIO pin, commonly GPIO25 (Pin 22) \[[1](https://github.com/SpaceTeddy/CC1101/blob/0d0f011d3b808e36ad57fab596ed5e1db9516856/README.md#hardware-connection),[2](https://allgeek.de/2017/07/31/cc1101-spi-raspberry-adapter-fuer-homegear-homematicmax/),[3](https://securipi.co.uk/cc1101.pdf)\] |
+|GDO0\*| Any GPIO pin, GPIO24 (Pin 18) recommended |
 |GND   | Ground             |
 
 No resistors required.
 Connection of pins marked with \* is optional.
-GDO2 stays "high until power and crystal have stabilized" (see CHIP_RDYn in docs).
+GDO2 stays "high until power and crystal have stabilized" (see `CHIP_RDYn` in docs).
+GDO0 is used by `.asynchronous_transmission()` for data input.
 
 If some of these pins are already in use,
 select a different SPI bus or chip select:
