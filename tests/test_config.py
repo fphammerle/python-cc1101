@@ -167,13 +167,13 @@ def test_set_base_frequency_hertz_low_warning(transceiver, freq_hz, warn):
         ((0, 1, 2, 3, 4, 5, 21, 42), 7, (0, 1, 2, 3, 4, 5, 21, 42)),
     ),
 )
-def test_get_output_power_levels(transceiver, patable, patable_index, power_levels):
+def test_get_output_power(transceiver, patable, patable_index, power_levels):
     with unittest.mock.patch.object(
         transceiver, "_get_patable", return_value=patable
     ), unittest.mock.patch.object(
         transceiver, "_get_power_amplifier_setting_index", return_value=patable_index
     ):
-        assert transceiver.get_output_power_levels() == power_levels
+        assert transceiver.get_output_power() == power_levels
 
 
 @pytest.mark.parametrize(
@@ -186,13 +186,13 @@ def test_get_output_power_levels(transceiver, patable, patable_index, power_leve
         (7, (0, 1, 2, 3, 4, 5, 21, 42)),
     ),
 )
-def test_set_output_power_levels(transceiver, patable_index, power_levels):
+def test_set_output_power(transceiver, patable_index, power_levels):
     with unittest.mock.patch.object(
         transceiver, "_set_patable"
     ) as set_patable_mock, unittest.mock.patch.object(
         transceiver, "_set_power_amplifier_setting_index"
     ) as set_patable_index_mock:
-        transceiver.set_output_power_levels(power_levels)
+        transceiver.set_output_power(power_levels)
     set_patable_mock.assert_called_once_with(list(power_levels))
     set_patable_index_mock.assert_called_once_with(patable_index)
 
@@ -200,6 +200,6 @@ def test_set_output_power_levels(transceiver, patable_index, power_levels):
 @pytest.mark.parametrize(
     "power_levels", (tuple(), (21, 256), (0, 1, 2, 3, 4, 5, 6, 7, 8))
 )
-def test_set_output_power_levels_invalid(transceiver, power_levels):
+def test_set_output_power_invalid(transceiver, power_levels):
     with pytest.raises(Exception):
-        transceiver.set_output_power_levels(power_levels)
+        transceiver.set_output_power(power_levels)

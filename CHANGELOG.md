@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- method `set/get_output_power_levels` to configure/retrieve output power settings
+- method `set/get_output_power` to configure/retrieve output power settings
   (`PATABLE` and `FREND0.PA_POWER`)
 
 ### Fixed

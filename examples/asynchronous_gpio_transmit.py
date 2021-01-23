@@ -15,7 +15,7 @@ GPIO.setup(_GDO0_PIN, GPIO.OUT, initial=GPIO.LOW)
 with cc1101.CC1101() as transceiver:
     transceiver.set_base_frequency_hertz(433.92e6)
     transceiver.set_symbol_rate_baud(600)
-    transceiver.set_output_power_levels((0, 0xC0))  # OOK modulation: (off, on)
+    transceiver.set_output_power((0, 0xC0))  # OOK modulation: (off, on)
     print(transceiver)
     print("starting transmission")
     with transceiver.asynchronous_transmission():
