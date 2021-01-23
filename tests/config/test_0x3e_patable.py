@@ -32,3 +32,20 @@ def test__get_patable(transceiver, patable):
     transceiver._spi.xfer.return_value = [0] + list(patable)
     assert transceiver._get_patable() == patable
     transceiver._spi.xfer.assert_called_once_with([0x3E | 0xC0] + [0] * 8)
+
+
+@pytest.mark.parametrize(
+    "patable",
+    (
+        (198, 0, 0, 0, 0, 0, 0, 0),  # default
+        [198, 0, 0, 0, 0, 0, 0, 0],
+        (0, 198, 0, 0, 0, 0, 0, 0),  # OOK
+        (1, 2, 3, 4, 5, 6, 7, 8),
+        (1, 2, 3),
+        (1,),
+    ),
+)
+def test__set_patable(transceiver, patable):
+    transceiver._spi.xfer.return_value = [0b00000111] * (len(patable) + 1)
+    transceiver._set_patable(patable)
+    transceiver._spi.xfer.assert_called_once_with([0x3E | 0x40] + list(patable))

@@ -109,9 +109,6 @@ class _ReceivedPacket:  # unstable
         )
 
 
-_PatableSetting = typing.Tuple[int, ...]
-
-
 class CC1101:
 
     # pylint: disable=too-many-public-methods
@@ -252,7 +249,9 @@ class CC1101:
 
     def _write_burst(
         self,
-        start_register: typing.Union[ConfigurationRegisterAddress, FIFORegisterAddress],
+        start_register: typing.Union[
+            ConfigurationRegisterAddress, PatableAddress, FIFORegisterAddress
+        ],
         values: typing.List[int],
     ) -> None:
         _LOGGER.debug(
@@ -783,7 +782,7 @@ class CC1101:
             start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
         )
 
-    def _get_patable(self) -> _PatableSetting:
+    def _get_patable(self) -> typing.Tuple[int, ...]:
         """
         see "10.6 PATABLE Access" and "24 Output Power Programming"
 
@@ -794,6 +793,11 @@ class CC1101:
                 start_register=PatableAddress.PATABLE, length=self._PATABLE_LENGTH_BYTES
             )
         )
+
+    def _set_patable(self, setting: typing.Iterable[int]):
+        setting = list(setting)
+        assert 0 < len(setting) <= self._PATABLE_LENGTH_BYTES, setting
+        self._write_burst(start_register=PatableAddress.PATABLE, values=setting)
 
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
