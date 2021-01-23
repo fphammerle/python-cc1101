@@ -60,6 +60,7 @@ def test_export_python_list(capsys, caplog):
             cc1101.addresses.ConfigurationRegisterAddress.IOCFG2: 0x29,
             cc1101.addresses.ConfigurationRegisterAddress.IOCFG1: 0x2E,
         }
+        transceiver_mock().__enter__()._get_patable.return_value = [0xC6] + [0] * 7
         with unittest.mock.patch("sys.argv", [""]):
             with caplog.at_level(logging.INFO):
                 cc1101._cli._export_config()
@@ -68,7 +69,11 @@ def test_export_python_list(capsys, caplog):
     ]
     out, err = capsys.readouterr()
     assert not err
-    assert out == "[\n0b00101001, # 0x29 IOCFG2\n0b00101110, # 0x2e IOCFG1\n]\n"
+    assert (
+        out
+        == "[\n0b00101001, # 0x29 IOCFG2\n0b00101110, # 0x2e IOCFG1\n]\n"
+        + "# PATABLE = (0xc6, 0, 0, 0, 0, 0, 0, 0)\n"
+    )
 
 
 @pytest.mark.parametrize(

@@ -111,6 +111,17 @@ def _export_config():
                 )
             )
         print("]")
+        print(
+            "# PATABLE = ({})".format(
+                # pylint: disable=protected-access; internal method
+                ", ".join(
+                    map(
+                        lambda s: "0" if s == 0 else "0x{:x}".format(s),
+                        transceiver._get_patable(),
+                    )
+                )
+            )
+        )
 
 
 def _transmit():

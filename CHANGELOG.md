@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - method `set/get_output_power` to configure/retrieve output power settings
   (`PATABLE` and `FREND0.PA_POWER`)
+- command `cc1101-export-config`: append values of `PATABLE` register as comment
 
 ### Fixed
 - default config via private/unstable method `_set_power_amplifier_setting_index`:
