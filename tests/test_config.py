@@ -174,3 +174,32 @@ def test_get_output_power_levels(transceiver, patable, patable_index, power_leve
         transceiver, "_get_power_amplifier_setting_index", return_value=patable_index
     ):
         assert transceiver.get_output_power_levels() == power_levels
+
+
+@pytest.mark.parametrize(
+    ("patable_index", "power_levels"),
+    (
+        (0, (198,)),  # CC1101's default
+        (1, (198, 0)),  # library's default
+        (1, (0, 198)),
+        (1, [0, 198]),
+        (7, (0, 1, 2, 3, 4, 5, 21, 42)),
+    ),
+)
+def test_set_output_power_levels(transceiver, patable_index, power_levels):
+    with unittest.mock.patch.object(
+        transceiver, "_set_patable"
+    ) as set_patable_mock, unittest.mock.patch.object(
+        transceiver, "_set_power_amplifier_setting_index"
+    ) as set_patable_index_mock:
+        transceiver.set_output_power_levels(power_levels)
+    set_patable_mock.assert_called_once_with(list(power_levels))
+    set_patable_index_mock.assert_called_once_with(patable_index)
+
+
+@pytest.mark.parametrize(
+    "power_levels", (tuple(), (21, 256), (0, 1, 2, 3, 4, 5, 6, 7, 8))
+)
+def test_set_output_power_levels_invalid(transceiver, power_levels):
+    with pytest.raises(Exception):
+        transceiver.set_output_power_levels(power_levels)

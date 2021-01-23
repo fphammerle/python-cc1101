@@ -60,3 +60,10 @@ def test__set_power_amplifier_setting_index(
     ):
         transceiver._set_power_amplifier_setting_index(setting_index)
     transceiver._spi.xfer.assert_called_once_with([0x22 | 0x40, frend0_after])
+
+
+@pytest.mark.parametrize("setting_index", (-1, 8, 21))
+def test__set_power_amplifier_setting_index_invalid(transceiver, setting_index):
+    with pytest.raises(Exception):
+        transceiver._set_power_amplifier_setting_index(setting_index)
+    transceiver._spi.xfer.assert_not_called()

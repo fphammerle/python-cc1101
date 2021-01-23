@@ -489,6 +489,7 @@ class CC1101:
         > If OOK modulation is used, the logic 0 and logic 1 power levels
         > shall be programmed to index 0 and 1 respectively.
         """
+        assert 0 <= setting_index <= 0b111, setting_index
         frend0 = self._read_single_byte(ConfigurationRegisterAddress.FREND0)
         frend0 &= 0b11111000
         frend0 |= setting_index
@@ -642,6 +643,9 @@ class CC1101:
 
     def __str__(self) -> str:
         sync_mode = self.get_sync_mode()
+        output_power_levels_hex = tuple(
+            map("0x{:x}".format, self.get_output_power_levels())
+        )
         attrs = (
             "marcstate={}".format(
                 self.get_main_radio_control_state_machine_state().name.lower()
@@ -665,7 +669,9 @@ class CC1101:
                 self.get_packet_length_bytes(),
             ),
             "output_power_levels=({})".format(
-                "".join(map("0x{:X},".format, self.get_output_power_levels()))
+                ",".join(output_power_levels_hex)
+                if len(output_power_levels_hex) > 1
+                else output_power_levels_hex[0] + ","
             ),
         )
         return "CC1101({})".format(", ".join(filter(None, attrs)))
@@ -803,22 +809,42 @@ class CC1101:
             )
         )
 
-    def _set_patable(self, setting: typing.Iterable[int]):
-        setting = list(setting)
-        assert 0 < len(setting) <= self._PATABLE_LENGTH_BYTES, setting
-        self._write_burst(start_register=PatableAddress.PATABLE, values=setting)
+    def _set_patable(self, levels: typing.Iterable[int]):
+        levels = list(levels)
+        assert all(0 <= l <= 0xFF for l in levels), levels
+        assert 0 < len(levels) <= self._PATABLE_LENGTH_BYTES, levels
+        self._write_burst(start_register=PatableAddress.PATABLE, values=levels)
 
     def get_output_power_levels(self) -> typing.Tuple[int, ...]:
         """
-        Returns the enabled PATABLE output power levels (up to 8 bytes).
+        Returns the enabled output power levels
+        (up to 8 bytes of the PATABLE register).
+
+        see .set_output_power_levels()
+        """
+        return self._get_patable()[: self._get_power_amplifier_setting_index() + 1]
+
+    def set_output_power_levels(self, power_levels: typing.Iterable[int]) -> None:
+        """
+        Configures output power levels by setting PATABLE and FREND0.PA_POWER.
+        Up to 8 bytes may be provided.
 
         > [PATABLE] provides flexible PA power ramp up and ramp down
         > at the start and end of transmission when using 2-FSK, GFSK,
         > 4-FSK, and MSK modulation as well as ASK modulation shaping.
 
-        See "24 Output Power Programming"
+        For OOK modulation, exactly 2 bytes must be provided:
+        0 to turn off the transmission for logical 0,
+        and a level > 0 to turn on the transmission for logical 1.
+        >>> transceiver.set_output_power_levels((0, 0xC6))
+
+        See "Table 39: Optimum PATABLE Settings for Various Output Power Levels [...]"
+        and section "24 Output Power Programming".
         """
-        return self._get_patable()[: self._get_power_amplifier_setting_index() + 1]
+        power_levels = list(power_levels)
+        # checks in sub-methods
+        self._set_power_amplifier_setting_index(len(power_levels) - 1)
+        self._set_patable(power_levels)
 
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
