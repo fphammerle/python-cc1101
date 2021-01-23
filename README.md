@@ -34,14 +34,14 @@ Connect the following pins directly:
 |GDO2\*| Any GPIO pin, commonly GPIO25 (Pin 22) \[[1](https://github.com/SpaceTeddy/CC1101/blob/0d0f011d3b808e36ad57fab596ed5e1db9516856/README.md#hardware-connection),[2](https://allgeek.de/2017/07/31/cc1101-spi-raspberry-adapter-fuer-homegear-homematicmax/),[3](https://securipi.co.uk/cc1101.pdf)\] |
 |GND   | Ground             |
 
+No resistors required.
+Connection of pins marked with \* is optional.
+GDO2 stays "high until power and crystal have stabilized" (see CHIP_RDYn in docs).
+
 If some of these pins are already in use,
 select a different SPI bus or chip select:
 https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
 ([permalink](https://github.com/raspberrypi/documentation/blob/d41d69f8efa3667b1a8b01a669238b8bd113edc1/hardware/raspberrypi/spi/README.md#hardware))
-
-No resistors required.
-Pins marked with \* are optional.
-GDO2 stays "high until power and crystal have stabilized" (see CHIP_RDYn in docs).
 
 Raspberry Pi GPIO docs: https://www.raspberrypi.org/documentation/usage/gpio/
 
