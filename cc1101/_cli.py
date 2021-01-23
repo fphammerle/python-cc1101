@@ -112,14 +112,9 @@ def _export_config():
             )
         print("]")
         print(
-            "# PATABLE = ({})".format(
-                # pylint: disable=protected-access; internal method
-                ", ".join(
-                    map(
-                        lambda s: "0" if s == 0 else "0x{:x}".format(s),
-                        transceiver._get_patable(),
-                    )
-                )
+            "# PATABLE = {}".format(
+                # pylint: disable=protected-access; internal function & method
+                cc1101._format_patable(transceiver._get_patable(), insert_spaces=True)
             )
         )
 

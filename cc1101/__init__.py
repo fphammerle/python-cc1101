@@ -109,6 +109,16 @@ class _ReceivedPacket:  # unstable
         )
 
 
+def _format_patable(settings: typing.Iterable[int], insert_spaces: bool) -> str:
+    # "Table 39: Optimum PATABLE Settings" uses hexadecimal digits
+    # "0" for brevity
+    settings_hex = tuple(map(lambda s: "0" if s == 0 else "0x{:x}".format(s), settings))
+    if len(settings_hex) == 1:
+        return "({},)".format(settings_hex[0])
+    delimiter = ", " if insert_spaces else ","
+    return "({})".format(delimiter.join(settings_hex))
+
+
 class CC1101:
 
     # pylint: disable=too-many-public-methods
@@ -643,7 +653,6 @@ class CC1101:
 
     def __str__(self) -> str:
         sync_mode = self.get_sync_mode()
-        output_power_settings_hex = tuple(map("0x{:x}".format, self.get_output_power()))
         attrs = (
             "marcstate={}".format(
                 self.get_main_radio_control_state_machine_state().name.lower()
@@ -666,10 +675,8 @@ class CC1101:
                 else "=",
                 self.get_packet_length_bytes(),
             ),
-            "output_power=({})".format(
-                ",".join(output_power_settings_hex)
-                if len(output_power_settings_hex) > 1
-                else output_power_settings_hex[0] + ","
+            "output_power={}".format(
+                _format_patable(self.get_output_power(), insert_spaces=False)
             ),
         )
         return "CC1101({})".format(", ".join(filter(None, attrs)))
