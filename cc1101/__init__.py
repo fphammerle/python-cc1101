@@ -465,6 +465,12 @@ class CC1101:
             )
         self._set_preamble_length_index(int(index))
 
+    def _get_power_amplifier_setting_index(self) -> int:
+        """
+        see ._set_power_amplifier_setting_index
+        """
+        return self._read_single_byte(ConfigurationRegisterAddress.FREND0) & 0b111
+
     def _set_power_amplifier_setting_index(self, setting_index: int) -> None:
         """
         FREND0.PA_POWER

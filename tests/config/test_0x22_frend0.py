@@ -23,6 +23,24 @@ import pytest
 
 
 @pytest.mark.parametrize(
+    ("frend0", "setting_index"),
+    [
+        (0b01000, 0),
+        (0b01001, 1),
+        (0b01111, 7),
+        (0b10000, 0),
+        (0b10001, 1),
+        (0b10111, 7),
+        (0b10101, 5),
+    ],
+)
+def test__get_power_amplifier_setting_index(transceiver, frend0, setting_index):
+    transceiver._spi.xfer.return_value = [15, frend0]
+    assert transceiver._get_power_amplifier_setting_index() == setting_index
+    transceiver._spi.xfer.assert_called_once_with([0x22 | 0x80, 0])
+
+
+@pytest.mark.parametrize(
     ("frend0_before", "frend0_after", "setting_index"),
     [
         (0b01000, 0b01000, 0),
