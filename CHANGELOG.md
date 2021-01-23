@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- method `get_output_power_levels`
+
 ### Fixed
 - default config via private/unstable method `_set_power_amplifier_setting_index`:
   no longer set `FREND0.LODIV_BUF_CURRENT_TX` to `0` (default: `1`)

@@ -664,6 +664,9 @@ class CC1101:
                 else "=",
                 self.get_packet_length_bytes(),
             ),
+            "output_power_levels=({})".format(
+                "".join(map("0x{:X},".format, self.get_output_power_levels()))
+            ),
         )
         return "CC1101({})".format(", ".join(filter(None, attrs)))
 
@@ -804,6 +807,18 @@ class CC1101:
         setting = list(setting)
         assert 0 < len(setting) <= self._PATABLE_LENGTH_BYTES, setting
         self._write_burst(start_register=PatableAddress.PATABLE, values=setting)
+
+    def get_output_power_levels(self) -> typing.Tuple[int, ...]:
+        """
+        Returns the enabled PATABLE output power levels (up to 8 bytes).
+
+        > [PATABLE] provides flexible PA power ramp up and ramp down
+        > at the start and end of transmission when using 2-FSK, GFSK,
+        > 4-FSK, and MSK modulation as well as ASK modulation shaping.
+
+        See "24 Output Power Programming"
+        """
+        return self._get_patable()[: self._get_power_amplifier_setting_index() + 1]
 
     def _flush_tx_fifo_buffer(self) -> None:
         # > Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.

@@ -156,3 +156,21 @@ def test_set_base_frequency_hertz_low_warning(transceiver, freq_hz, warn):
         )
     else:
         assert not caught_warnings
+
+
+@pytest.mark.parametrize(
+    ("patable", "patable_index", "power_levels"),
+    (
+        ((198, 0, 0, 0, 0, 0, 0, 0), 0, (198,)),  # CC1101's default
+        ((198, 0, 0, 0, 0, 0, 0, 0), 1, (198, 0)),  # library's default
+        ((0, 198, 0, 0, 0, 0, 0, 0), 1, (0, 198)),
+        ((0, 1, 2, 3, 4, 5, 21, 42), 7, (0, 1, 2, 3, 4, 5, 21, 42)),
+    ),
+)
+def test_get_output_power_levels(transceiver, patable, patable_index, power_levels):
+    with unittest.mock.patch.object(
+        transceiver, "_get_patable", return_value=patable
+    ), unittest.mock.patch.object(
+        transceiver, "_get_power_amplifier_setting_index", return_value=patable_index
+    ):
+        assert transceiver.get_output_power_levels() == power_levels
