@@ -146,6 +146,35 @@ def test_configure_device(
 
 
 @pytest.mark.parametrize(
+    ("args", "output_power_settings"),
+    (
+        ([""], None),
+        (["", "-p", "198"], [198]),  # default
+        (["", "--output-power", "198"], [198]),
+        (["", "-p", "0", "198"], [0, 198]),  # OOK
+        (
+            ["", "-p", "18", "14", "29", "52", "96", "132", "200", "192"],
+            [18, 14, 29, 52, 96, 132, 200, 192],
+        ),
+    ),
+)
+def test_configure_device_output_power(args, output_power_settings):
+    with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
+        stdin_mock = unittest.mock.MagicMock()
+        stdin_mock.buffer = io.BytesIO(b"message")
+        with unittest.mock.patch("sys.stdin", stdin_mock):
+            with unittest.mock.patch("sys.argv", args):
+                cc1101._cli._transmit()
+    transceiver_mock.assert_called_once_with(lock_spi_device=True)
+    if output_power_settings:
+        transceiver_mock().__enter__().set_output_power.assert_called_with(
+            output_power_settings
+        )
+    else:
+        transceiver_mock().__enter__().set_output_power.assert_not_called()
+
+
+@pytest.mark.parametrize(
     ("args", "root_log_level", "log_format"),
     (
         ([""], logging.INFO, "%(message)s"),
@@ -187,8 +216,8 @@ def test_logging(caplog, payload):
             "cc1101._cli",
             logging.DEBUG,
             "args=Namespace(base_frequency_hertz=None, debug=False, "
-            "disable_checksum=False, packet_length_mode=None, symbol_rate_baud=None, "
-            "sync_mode=None)",
+            "disable_checksum=False, output_power_settings=None, packet_length_mode=None, "
+            "symbol_rate_baud=None, sync_mode=None)",
         ),
         ("cc1101._cli", logging.INFO, "dummy"),
     ]

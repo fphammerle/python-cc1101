@@ -54,6 +54,31 @@ def test_configure_device(args, packet_length_mode, checksum_disabled):
         transceiver_mock.disable_checksum.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    ("args", "output_power_settings"),
+    (
+        ([""], None),
+        (["", "-p", "192"], [192]),
+        (["", "--output-power", "192"], [192]),
+        (["", "-p", "0", "192"], [0, 192]),  # OOK
+        (
+            ["", "-p", "3", "15", "30", "39", "80", "129", "203", "194"],
+            [3, 15, 30, 39, 80, 129, 203, 194],
+        ),
+    ),
+)
+def test_configure_device_output_power_settings(args, output_power_settings):
+    with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
+        with unittest.mock.patch("sys.argv", args):
+            cc1101._cli._export_config()
+    if output_power_settings is None:
+        transceiver_mock().__enter__().set_output_power.assert_not_called()
+    else:
+        transceiver_mock().__enter__().set_output_power.assert_called_with(
+            output_power_settings
+        )
+
+
 def test_export_python_list(capsys, caplog):
     with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
         transceiver_mock().__enter__().get_configuration_register_values.return_value = {
@@ -108,7 +133,8 @@ def test_logging(caplog):
             "cc1101._cli",
             logging.DEBUG,
             "args=Namespace(base_frequency_hertz=None, debug=False, disable_checksum=False, "
-            "format='python-list', packet_length_mode=None, symbol_rate_baud=None, sync_mode=None)",
+            "format='python-list', output_power_settings=None, packet_length_mode=None, "
+            "symbol_rate_baud=None, sync_mode=None)",
         ),
         ("cc1101._cli", logging.INFO, "dummystr"),
     ]

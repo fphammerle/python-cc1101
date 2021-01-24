@@ -42,6 +42,26 @@ def _add_common_args(argparser: argparse.ArgumentParser) -> None:
         choices=[m.name.lower() for m in cc1101.options.PacketLengthMode],
     )
     argparser.add_argument("--disable-checksum", action="store_true")
+    argparser.add_argument(
+        "-p",
+        "--output-power",
+        metavar="SETTING",
+        dest="output_power_settings",
+        type=int,
+        nargs="+",
+        help="Configures output power levels by setting PATABLE and FREND0.PA_POWER."
+        " Up to 8 bytes may be provided."
+        # add when making _set_modulation_format() public
+        # ' "[PATABLE] provides flexible PA power ramp up and ramp down'
+        # " at the start and end of transmission when using 2-FSK, GFSK,"
+        # ' 4-FSK, and MSK modulation as well as ASK modulation shaping."'
+        " For OOK modulation, exactly 2 bytes must be provided:"
+        " 0 to turn off the transmission for logical 0,"
+        " and a level > 0 to turn on the transmission for logical 1"
+        " (e.g., --output-power 0 198)."
+        ' See "Table 39: Optimum PATABLE Settings for Various Output Power Levels [...]"'
+        ' and section "24 Output Power Programming".',
+    )
     argparser.add_argument("-d", "--debug", action="store_true")
 
 
@@ -82,6 +102,8 @@ def _configure_via_args(
             transceiver.set_packet_length_bytes(packet_length_if_fixed)
     if args.disable_checksum:
         transceiver.disable_checksum()
+    if args.output_power_settings:
+        transceiver.set_output_power(args.output_power_settings)
 
 
 def _export_config():
@@ -122,7 +144,7 @@ def _export_config():
 def _transmit():
     argparser = argparse.ArgumentParser(
         description="Transmits the payload provided via standard input (stdin)"
-        " OOK-modulated in big-endian bit order.",
+        " ASK/OOK-modulated in big-endian bit order.",
         allow_abbrev=False,
     )
     _add_common_args(argparser)
