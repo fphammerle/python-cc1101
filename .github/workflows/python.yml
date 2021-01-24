@@ -39,6 +39,7 @@ jobs:
         - 3.6
         - 3.7
         - 3.8
+        - 3.9
       fail-fast: false
     steps:
     - uses: actions/checkout@v1
@@ -50,11 +51,13 @@ jobs:
       env:
         PYTHON_VERSION: ${{ matrix.python-version }}
     - run: pipenv graph
-    - run: pipenv run pytest --cov=cc1101 --cov-report=term-missing --cov-fail-under=94
-    - run: pipenv run pylint --load-plugins=pylint_import_requirements cc1101
+    - run: pipenv run pytest --cov="$(cat *.egg-info/top_level.txt)" --cov-report=term-missing --cov-fail-under=94
+    # https://github.com/PyCQA/pylint/issues/3882
+    - run: python3 -c 'import sys; sys.exit(sys.version_info < (3, 9))'
+        || pipenv run pylint --load-plugins=pylint_import_requirements "$(cat *.egg-info/top_level.txt)"
     # https://github.com/PyCQA/pylint/issues/352
     - run: pipenv run pylint tests/*
-    - run: pipenv run mypy cc1101 tests
+    - run: pipenv run mypy "$(cat *.egg-info/top_level.txt)" tests
     # >=1.9.0 to detect branch name
     # https://github.com/coveralls-clients/coveralls-python/pull/207
     # https://github.com/coverallsapp/github-action/issues/4#issuecomment-547036866

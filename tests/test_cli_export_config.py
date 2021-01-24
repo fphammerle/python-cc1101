@@ -128,13 +128,10 @@ def test_logging(caplog):
     ) as transceiver_mock, caplog.at_level(logging.DEBUG):
         transceiver_mock().__enter__().__str__.return_value = "dummystr"
         cc1101._cli._export_config()
-    assert caplog.record_tuples == [
-        (
-            "cc1101._cli",
-            logging.DEBUG,
-            "args=Namespace(base_frequency_hertz=None, debug=False, disable_checksum=False, "
-            "format='python-list', output_power_settings=None, packet_length_mode=None, "
-            "symbol_rate_baud=None, sync_mode=None)",
-        ),
-        ("cc1101._cli", logging.INFO, "dummystr"),
-    ]
+    assert len(caplog.records) == 2
+    assert caplog.records[0].levelno == logging.DEBUG
+    assert caplog.records[0].name == "cc1101._cli"
+    assert caplog.records[0].message.startswith(
+        "args=Namespace(base_frequency_hertz=None, "
+    )
+    assert caplog.record_tuples[1] == ("cc1101._cli", logging.INFO, "dummystr")
