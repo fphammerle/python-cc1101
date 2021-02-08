@@ -549,15 +549,19 @@ class CC1101:
             # advisory, exclusive, non-blocking
             # lock removed in __exit__ by SpiDev.close()
             fcntl.flock(self._spi.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self._spi.max_speed_hz = 55700  # empirical
-        self._reset()
-        self._verify_chip()
-        self._configure_defaults()
-        marcstate = self.get_main_radio_control_state_machine_state()
-        if marcstate != MainRadioControlStateMachineState.IDLE:
-            raise ValueError(
-                "expected marcstate idle (actual: {})".format(marcstate.name)
-            )
+        try:
+            self._spi.max_speed_hz = 55700  # empirical
+            self._reset()
+            self._verify_chip()
+            self._configure_defaults()
+            marcstate = self.get_main_radio_control_state_machine_state()
+            if marcstate != MainRadioControlStateMachineState.IDLE:
+                raise ValueError(
+                    "expected marcstate idle (actual: {})".format(marcstate.name)
+                )
+        except:
+            self._spi.close()
+            raise
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):  # -> typing.Literal[False]
