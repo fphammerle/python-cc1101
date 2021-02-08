@@ -137,3 +137,24 @@ def test_unlock_spi_device_no_lock(spidev_mock):
         with transceiver:  # no lock acquired
             # verify no error occurs
             transceiver.unlock_spi_device()
+
+
+def test_unlock_on_exception(spidev_mock):
+    with _mock_hardware_access():
+        with unittest.mock.patch("spidev.SpiDev", spidev_mock):
+            transceiver1 = cc1101.CC1101(lock_spi_device=True)
+            transceiver2 = cc1101.CC1101(lock_spi_device=True)
+        with pytest.raises(ValueError, match=r"^test$"):
+            with transceiver1:
+                raise ValueError("test")
+        with transceiver2:
+            pass  # no BlockingIOError
+        # does locking still work after exception?
+        with transceiver1:
+            with pytest.raises(BlockingIOError):
+                with transceiver2:
+                    pass
+        with transceiver2:
+            with pytest.raises(BlockingIOError):
+                with transceiver1:
+                    pass
