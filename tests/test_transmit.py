@@ -1,3 +1,4 @@
+import logging
 import unittest.mock
 
 import pytest
@@ -54,7 +55,7 @@ def test_transmit_unexpected_payload_len(transceiver, packet_length, payload):
 
 
 @pytest.mark.parametrize("payload", (b"\0", b"\xaa\xbb\xcc", bytes(range(42))))
-def test_transmit_fixed(transceiver, payload):
+def test_transmit_fixed(caplog, transceiver, payload):
     transceiver._spi.xfer.side_effect = lambda v: [15] * len(v)
     with unittest.mock.patch.object(
         transceiver,
@@ -66,12 +67,23 @@ def test_transmit_fixed(transceiver, payload):
         transceiver,
         "get_main_radio_control_state_machine_state",
         return_value=cc1101.MainRadioControlStateMachineState.IDLE,
+    ), caplog.at_level(
+        logging.INFO
     ):
         transceiver.transmit(payload)
     assert transceiver._spi.xfer.call_args_list == [
         unittest.mock.call([0x3B]),  # flush
         unittest.mock.call([0x3F | 0x40] + list(payload)),
         unittest.mock.call([0x35]),  # start transmission
+    ]
+    assert caplog.record_tuples == [
+        (
+            "cc1101",
+            20,
+            "transmitting 0x{} ({!r})".format(
+                "".join("{:02x}".format(b) for b in payload), payload
+            ),
+        )
     ]
 
 

@@ -183,6 +183,7 @@ def test_get_output_power(transceiver, patable, patable_index, power_levels):
         (1, (198, 0)),  # library's default
         (1, (0, 198)),
         (1, [0, 198]),
+        (1, b"\0\x6c"),
         (7, (0, 1, 2, 3, 4, 5, 21, 42)),
     ),
 )

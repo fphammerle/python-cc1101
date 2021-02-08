@@ -103,9 +103,7 @@ class _ReceivedPacket:  # unstable
 
     def __str__(self) -> str:
         return "{}(RSSI {:.0f}dBm, 0x{})".format(
-            type(self).__name__,
-            self.rssi_dbm,
-            "".join("{:02x}".format(b) for b in self.payload),
+            type(self).__name__, self.rssi_dbm, self.payload.hex()
         )
 
 
@@ -666,7 +664,7 @@ class CC1101:
             "preamble_length={}B".format(self.get_preamble_length_bytes())
             if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
             else None,
-            "sync_word=0x{:02x}{:02x}".format(*self.get_sync_word())
+            "sync_word=0x{}".format(self.get_sync_word().hex())
             if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
             else None,
             "packet_length{}{}B".format(
@@ -909,11 +907,7 @@ class CC1101:
             )
         self._flush_tx_fifo_buffer()
         self._write_burst(FIFORegisterAddress.TX, list(payload))
-        _LOGGER.info(
-            "transmitting 0x%s (%r)",
-            "".join("{:02x}".format(b) for b in payload),
-            payload,
-        )
+        _LOGGER.info("transmitting 0x%s (%r)", payload.hex(), payload)
         self._command_strobe(StrobeAddress.STX)
 
     @contextlib.contextmanager
