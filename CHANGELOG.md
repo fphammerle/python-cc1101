@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.7.2] - 2021-03-12
 ### Fixed
 - recommend to check wiring & bus selection when receiving chip version `0`
 
@@ -102,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - disabled data whitening
 - automatic calibration
 
-[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.7.1...HEAD
+[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.7.2...HEAD
+[2.7.2]: https://github.com/fphammerle/python-cc1101/compare/v2.7.1...v2.7.2
 [2.7.1]: https://github.com/fphammerle/python-cc1101/compare/v2.7.0...v2.7.1
 [2.7.0]: https://github.com/fphammerle/python-cc1101/compare/v2.6.1...v2.7.0
 [2.6.1]: https://github.com/fphammerle/python-cc1101/compare/v2.6.0...v2.6.1
