@@ -513,12 +513,17 @@ class CC1101:
             )
         version = self._read_status_register(StatusRegisterAddress.VERSION)
         if version not in self._SUPPORTED_VERSIONS:
-            raise ValueError(
-                "unsupported chip version 0x{:02x} (expected one of [{}])".format(
-                    version,
-                    ", ".join("0x{:02x}".format(v) for v in self._SUPPORTED_VERSIONS),
-                )
+            msg = "Unsupported chip version 0x{:02x} (expected one of [{}])".format(
+                version,
+                ", ".join("0x{:02x}".format(v) for v in self._SUPPORTED_VERSIONS),
             )
+            if version == 0:
+                msg += (
+                    "\n\nPlease verify that all required pins are connected"
+                    " (see https://github.com/fphammerle/python-cc1101#wiring-raspberry-pi)"
+                    " and that you selected the correct SPI bus and chip/slave select line."
+                )
+            raise ValueError(msg)
 
     def _configure_defaults(self) -> None:
         # next major/breaking release will probably stick closer to CC1101's defaults

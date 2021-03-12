@@ -120,9 +120,28 @@ def test___enter___unsupported_chip_version(transceiver):
             ValueError,
             match=r"^{}$".format(
                 re.escape(
-                    "unsupported chip version 0x15 (expected one of [0x04, 0x14])"
+                    "Unsupported chip version 0x15 (expected one of [0x04, 0x14])"
                 )
             ),
+        ):
+            with transceiver:
+                pass
+
+
+def test___enter___chip_version_zero(transceiver):
+    with unittest.mock.patch.object(
+        transceiver, "_read_status_register"
+    ) as read_status_register_mock, unittest.mock.patch.object(transceiver, "_reset"):
+        read_status_register_mock.side_effect = lambda r: {
+            cc1101.addresses.StatusRegisterAddress.PARTNUM: 0x00,
+            cc1101.addresses.StatusRegisterAddress.VERSION: 0x00,
+        }[r]
+        with pytest.raises(
+            ValueError,
+            match=r"^Unsupported chip version 0x00 \(expected one of \[0x04, 0x14\]\)"
+            r"\n\nPlease verify that all required pins are connected"
+            r" \(see https://github\.com/fphammerle/python\-cc1101\#wiring\-raspberry\-pi\)"
+            r" and that you selected the correct SPI bus and chip/slave select line\.$",
         ):
             with transceiver:
                 pass
