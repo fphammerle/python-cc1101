@@ -58,13 +58,12 @@ jobs:
     # https://github.com/PyCQA/pylint/issues/352
     - run: pipenv run pylint tests/*
     - run: pipenv run mypy "$(cat *.egg-info/top_level.txt)" tests
-    # >=1.9.0 to detect branch name
-    # https://github.com/coveralls-clients/coveralls-python/pull/207
-    # https://github.com/coverallsapp/github-action/issues/4#issuecomment-547036866
-    # 1.11.0 https://github.com/coveralls-clients/coveralls-python/issues/219
-    - run: pip install 'coveralls>=1.9.0,<2,!=1.11.0'
-    # https://github.com/coverallsapp/github-action/issues/30
-    # https://github.com/coverallsapp/github-action/issues/4#issuecomment-529399410
+    # >=2.1.0 to support GITHUB_TOKEN
+    # COVERALLS_REPO_TOKEN required manual configuration of secret
+    # https://github.com/TheKevJames/coveralls-python/commit/f597109b62fadaf900af79d4f08a7debee5229e2
+    - run: pip install 'coveralls>=2.1.0,<4'
     - run: coveralls
       env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # https://github.com/TheKevJames/coveralls-python/issues/240#issuecomment-758336355
+        COVERALLS_SERVICE_NAME: github
