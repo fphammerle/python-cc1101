@@ -546,7 +546,7 @@ class CC1101:
             raise PermissionError(
                 "Could not access {}".format(self._spi_device_path)
                 + "\nVerify that the current user has both read and write access."
-                + "\nOn some devices, like Raspberry Pis,"
+                + "\nOn some systems, like Raspberry Pi OS / Raspbian,"
                 + "\n\tsudo usermod -a -G spi $USER"
                 + "\nfollowed by a re-login grants sufficient permissions."
             ) from exc
