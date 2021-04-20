@@ -990,5 +990,10 @@ class CC1101:
         gdo0_line.request(gdo0_line_request)
         self._enable_receive_mode()
         if not gdo0_line.event_wait(timeout=timeout):
+            self._command_strobe(StrobeAddress.SIDLE)
+            _LOGGER.debug(
+                "reached timeout of %f seconds while waiting for packet",
+                timeout.total_seconds(),
+            )
             return None  # timeout
         return self._get_received_packet()

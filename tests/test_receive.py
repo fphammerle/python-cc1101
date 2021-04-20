@@ -64,7 +64,9 @@ def test__wait_for_packet(
         transceiver, "_get_received_packet"
     ) as get_received_packet_mock, unittest.mock.patch.object(
         transceiver, "_enable_receive_mode"
-    ) as enable_receive_mode_mock:
+    ) as enable_receive_mode_mock, unittest.mock.patch.object(
+        transceiver, "_command_strobe"
+    ) as command_strobe_mock:
         get_line_mock.return_value = line_mock
         get_received_packet_mock.return_value = "packet-dummy"
         packet = transceiver._wait_for_packet(
@@ -87,7 +89,9 @@ def test__wait_for_packet(
     line_mock.event_wait.assert_called_once_with(timeout=timeout)
     if reached_timeout:
         assert packet is None
+        command_strobe_mock.assert_called_once_with(0x36)  # SIDLE
         get_received_packet_mock.assert_not_called()
     else:
+        command_strobe_mock.assert_not_called()
         get_received_packet_mock.assert_called_once_with()
         assert packet == "packet-dummy"
