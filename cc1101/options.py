@@ -18,6 +18,19 @@
 import enum
 
 
+class GDOSignalSelection(enum.IntEnum):
+    """
+    GDO{0,1,2}_CFG
+
+    Table 41: GDOx Signal Selection (x = 0, 1, or 2)
+    """
+
+    # > Associated to the RX FIFO:
+    # > Asserts when RX FIFO is filled at or above the RX FIFO threshold
+    # > or the end of packet is reached. De-asserts when the RX FIFO is empty.
+    RX_FIFO_AT_OR_ABOVE_THRESHOLD_OR_PACKET_END_REACHED = 0x01
+
+
 class PacketLengthMode(enum.IntEnum):
     """
     PKTCTRL0.LENGTH_CONFIG
