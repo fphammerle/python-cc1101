@@ -1,8 +1,6 @@
 import pathlib
 import typing
 
-import gpiod
-
 ChipSelector = typing.Union[pathlib.Path, str, int]
 
 
@@ -12,7 +10,11 @@ def _format_chip_selector(selector: ChipSelector) -> str:
     return str(selector)
 
 
-def get_line(chip_selector: ChipSelector, line_name: str) -> gpiod.line:
+def get_line(chip_selector: ChipSelector, line_name: str) -> "gpiod.line":  # type: ignore
+    # lazy import to protect stable API against incompatilibities in hhk7734/python3-gpiod
+    # e.g., incompatibility of v1.5.0 with python3.5&3.6 (python_requires not set)
+    import gpiod  # pylint: disable=import-outside-toplevel
+
     try:
         chip = gpiod.chip(chip_selector)
     except PermissionError as exc:
