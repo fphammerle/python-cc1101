@@ -16,7 +16,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import contextlib
-import datetime
 import enum
 import fcntl
 import logging
@@ -969,31 +968,22 @@ class CC1101:
 
     def _wait_for_packet(  # unstable
         self,
-        timeout: datetime.timedelta,
-        # https://github.com/hhk7734/python3-gpiod/blob/v1.5.0/py_src/gpiod/libgpiodcxx/__init__.py#L83
-        gdo0_chip: cc1101._gpio.ChipSelector = 0,
-        gdo0_line_name: str = "GPIO24",  # recommended in README.md
+        timeout_seconds: int,
+        gdo0_gpio_line_name: bytes = b"GPIO24",  # recommended in README.md
     ) -> typing.Optional[_ReceivedPacket]:
         """
         depends on IOCFG0 == 0b00000001 (see _configure_defaults)
         """
         # pylint: disable=protected-access
-        gdo0_line = cc1101._gpio.get_line(
-            chip_selector=gdo0_chip, line_name=gdo0_line_name
-        )
-        import gpiod  # pylint: disable=import-outside-toplevel; see get_line()
-
-        # https://github.com/hhk7734/python3-gpiod/blob/v1.2.1/py_src/gpiod/test/button.py#L33
-        gdo0_line_request = gpiod.line_request()
-        gdo0_line_request.consumer = "CC1101:GDO0"
-        gdo0_line_request.request_type = gpiod.line_request.EVENT_RISING_EDGE
-        gdo0_line.request(gdo0_line_request)
+        gdo0 = cc1101._gpio.GPIOLine.find(name=gdo0_gpio_line_name)
         self._enable_receive_mode()
-        if not gdo0_line.event_wait(timeout=timeout):
+        if not gdo0.wait_for_rising_edge(
+            consumer=b"CC1101:GDO0", timeout_seconds=timeout_seconds
+        ):
             self._command_strobe(StrobeAddress.SIDLE)
             _LOGGER.debug(
-                "reached timeout of %f seconds while waiting for packet",
-                timeout.total_seconds(),
+                "reached timeout of %d seconds while waiting for packet",
+                timeout_seconds,
             )
             return None  # timeout
         return self._get_received_packet()

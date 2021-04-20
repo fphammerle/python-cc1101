@@ -65,9 +65,6 @@ setuptools.setup(
         ]
     },
     install_requires=[
-        # potential alternative: https://salsa.debian.org/debian/libgpiod (python3-libgpiod)
-        # https://github.com/hhk7734/python3-gpiod
-        "gpiod",
         # apt install python3-spidev
         # https://github.com/doceme/py-spidev
         "spidev",

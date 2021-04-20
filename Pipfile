@@ -12,11 +12,7 @@ cc1101 = {editable = true,path = "."}
 # > $ python3 -c 'import spidev; print(spidev.__version__)'
 # > 3.4
 # https://pypi.org/project/spidev/3.4/
-spidev = {version = "3.4"}
-# python<3.7 compatibility
-# https://github.com/hhk7734/python3-gpiod/commit/19023307eb5c3dca54fb9113af71e172c1058f0a#diff-cc49f982a99ed077a61688cc7e4c08c6d7058a729cc6fe28f520d9a69a3e752cR793
-# https://github.com/hhk7734/python3-gpiod/commit/e3c69a37a98783ec60194c7da32f7df57e421df4#diff-4411023b37c4dce2d8ffab26c4679ac8e0981a0f7f35364f4de8fbdfd87eec8fR24
-gpiod = "<1.2.2"
+spidev = "==3.4"
 
 [dev-packages]
 # black requires python>=3.6

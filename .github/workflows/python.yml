@@ -46,9 +46,6 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - run: sudo apt-get update
-    # https://github.com/hhk7734/python3-gpiod/blob/v1.2.1/py_src/gpiod/libgpiod/__init__.py#L54
-    - run: sudo apt-get install --yes --no-install-recommends libgpiod2
     - run: pip install --upgrade pipenv==2020.8.13
     - run: pipenv install --python "$PYTHON_VERSION" --deploy --dev
       env:

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4e59af67df70f9d30795c6bc94668084e92b5ce31982ee3add26002e5f47bc72"
+            "sha256": "faa17db8123067958e66a14c65b1258ae6b92b58c606b1402341e864fb00ce6a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -19,13 +19,6 @@
         "cc1101": {
             "editable": true,
             "path": "."
-        },
-        "gpiod": {
-            "hashes": [
-                "sha256:667a156f707f60f3a68300c43b1392b6c8bf8104a9f42dcced2d9957c2a86dd0"
-            ],
-            "index": "pypi",
-            "version": "==1.2.1"
         },
         "spidev": {
             "hashes": [

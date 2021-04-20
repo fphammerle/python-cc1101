@@ -15,46 +15,108 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pathlib
-import typing
+import ctypes
+import ctypes.util
+import errno
+import functools
 
-ChipSelector = typing.Union[pathlib.Path, str, int]
-
-
-def _format_chip_selector(selector: ChipSelector) -> str:
-    if isinstance(selector, int):
-        return "/dev/gpiochip{}".format(selector)
-    return str(selector)
+# could not find Debian's python3-libgpiod on pypi.org
+# https://salsa.debian.org/debian/libgpiod does not provide setup.py or setup.cfg
 
 
-def get_line(chip_selector: ChipSelector, line_name: str) -> "gpiod.line":  # type: ignore
-    # lazy import to protect stable API against incompatilibities in hhk7734/python3-gpiod
-    # e.g., incompatibility of v1.5.0 with python3.5&3.6 (python_requires not set)
-    import gpiod  # pylint: disable=import-outside-toplevel
-
-    try:
-        chip = gpiod.chip(chip_selector)
-    except PermissionError as exc:
-        raise PermissionError(
-            "Failed to access GPIO chip {}.".format(
-                _format_chip_selector(chip_selector)
-            )
-            + "\nVerify that the current user has read and write access."
-            + "\nOn some systems, like Raspberry Pi OS / Raspbian,"
-            + "\n\tsudo usermod -a -G gpio $USER"
-            + "\nfollowed by a re-login grants sufficient permissions."
-        ) from exc
-    except (FileNotFoundError, OSError, TypeError) as exc:
+@functools.lru_cache(maxsize=1)
+def _load_libgpiod() -> ctypes.CDLL:
+    filename = ctypes.util.find_library("gpiod")
+    if not filename:
         raise FileNotFoundError(
-            "Failed to find GPIO chip {}.".format(_format_chip_selector(chip_selector))
-            + "\nRun command `gpiodetect` or `gpioinfo` to view available GPIO chips."
-        ) from exc
-    line = chip.find_line(name=line_name)
-    try:
-        line.name
-    except RuntimeError as exc:
-        raise ValueError(
-            "Failed to find GPIO line with name {!r}.".format(line_name)
-            + "\nRun command `gpioinfo` to view the names of all available GPIO lines."
-        ) from exc
-    return line
+            "Failed to find libgpiod."
+            "\nOn Debian-based systems, like Raspberry Pi OS / Raspbian,"
+            " libgpiod can be installed via"
+            "\n\tsudo apt-get install --no-install-recommends libgpiod2"
+        )
+    return ctypes.CDLL(filename, use_errno=True)
+
+
+class _c_timespec(ctypes.Structure):
+    """
+    struct timespec {
+        time_t tv_sec;
+        long tv_nsec;
+    };
+    """
+
+    # pylint: disable=too-few-public-methods,invalid-name; struct
+
+    _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
+
+
+class GPIOLine:
+    def __init__(self, pointer: ctypes.c_void_p) -> None:
+        assert pointer != 0
+        self._pointer = pointer
+
+    @classmethod
+    def find(cls, name: bytes) -> "GPIOLine":
+        # > If this routine succeeds, the user must manually close the GPIO chip
+        # > owning this line to avoid memory leaks.
+        pointer = _load_libgpiod().gpiod_line_find(name)  # type: int
+        # > If the line could not be found, this functions sets errno to ENOENT.
+        if pointer == 0:
+            err = ctypes.get_errno()
+            if err == errno.EACCES:
+                # > [PermissionError] corresponds to errno EACCES and EPERM.
+                raise PermissionError(
+                    "Failed to access GPIO line {!r}.".format(name.decode())
+                    + "\nVerify that the current user has read and write access for /dev/gpiochip*."
+                    + "\nOn some systems, like Raspberry Pi OS / Raspbian,"
+                    + "\n\tsudo usermod -a -G gpio $USER"
+                    + "\nfollowed by a re-login grants sufficient permissions."
+                )
+            if err == errno.ENOENT:
+                # > [FileNotFoundError] corresponds to errno ENOENT.
+                # https://docs.python.org/3/library/exceptions.html#FileNotFoundError
+                raise FileNotFoundError(
+                    "GPIO line {!r} does not exist.".format(name.decode())
+                    + "\nRun command `gpioinfo` to get a list of all available GPIO lines."
+                )
+            raise OSError(
+                "Failed to open GPIO line {!r}: {}".format(
+                    name.decode(),
+                    errno.errorcode[err],
+                )
+            )
+        return cls(pointer=ctypes.c_void_p(pointer))
+
+    def __del__(self):
+        # > Close a GPIO chip owning this line and release all resources.
+        # > After this function returns, the line must no longer be used.
+        if self._pointer:
+            _load_libgpiod().gpiod_line_close_chip(self._pointer)
+        # might make debugging easier in case someone calls __del__ twice
+        self._pointer = None
+
+    def wait_for_rising_edge(self, consumer: bytes, timeout_seconds: int) -> bool:
+        """
+        Return True, if an event occured; False on timeout.
+        """
+        if (
+            _load_libgpiod().gpiod_line_request_rising_edge_events(
+                self._pointer, consumer
+            )
+            != 0
+        ):
+            err = ctypes.get_errno()
+            raise OSError(
+                "Request for rising edge event notifications failed ({}).".format(
+                    errno.errorcode[err]
+                )
+                + ("\nBlocked by another process?" if err == errno.EBUSY else "")
+            )
+        timeout = _c_timespec(timeout_seconds, 0)
+        result = _load_libgpiod().gpiod_line_event_wait(
+            self._pointer, ctypes.pointer(timeout)
+        )  # type: int
+        _load_libgpiod().gpiod_line_release(self._pointer)
+        if result == -1:
+            raise OSError("Failed to wait for rising edge event notification.")
+        return result == 1

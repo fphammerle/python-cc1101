@@ -15,10 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import datetime
 import unittest.mock
 
-import gpiod
 import pytest
 
 # pylint: disable=protected-access
@@ -49,44 +47,32 @@ def test__get_received_packet(transceiver, payload):
     assert received_packet.link_quality_indicator == 42
 
 
-@pytest.mark.parametrize("gdo0_chip_selector", (0, "/dev/gpiochip1"))
-@pytest.mark.parametrize("gdo0_line_name", ("GPIO24", "GPIO25"))
+@pytest.mark.parametrize("gdo0_gpio_line_name", (b"GPIO24", b"GPIO25"))
 @pytest.mark.parametrize("reached_timeout", (True, False))
-@pytest.mark.parametrize("timeout", (datetime.timedelta(seconds=1),))
+@pytest.mark.parametrize("timeout_seconds", (2,))
 def test__wait_for_packet(
-    transceiver, gdo0_chip_selector, gdo0_line_name, timeout, reached_timeout
+    transceiver, gdo0_gpio_line_name, timeout_seconds, reached_timeout
 ):
     line_mock = unittest.mock.MagicMock()
-    line_mock.event_wait.return_value = not reached_timeout
+    line_mock.wait_for_rising_edge.return_value = not reached_timeout
     with unittest.mock.patch(
-        "cc1101._gpio.get_line"
-    ) as get_line_mock, unittest.mock.patch.object(
-        transceiver, "_get_received_packet"
+        "cc1101._gpio.GPIOLine.find", return_value=line_mock
+    ) as find_line_mock, unittest.mock.patch.object(
+        transceiver, "_get_received_packet", return_value="packet-dummy"
     ) as get_received_packet_mock, unittest.mock.patch.object(
         transceiver, "_enable_receive_mode"
     ) as enable_receive_mode_mock, unittest.mock.patch.object(
         transceiver, "_command_strobe"
     ) as command_strobe_mock:
-        get_line_mock.return_value = line_mock
-        get_received_packet_mock.return_value = "packet-dummy"
         packet = transceiver._wait_for_packet(
-            timeout=timeout,
-            gdo0_chip=gdo0_chip_selector,
-            gdo0_line_name=gdo0_line_name,
+            timeout_seconds=timeout_seconds,
+            gdo0_gpio_line_name=gdo0_gpio_line_name,
         )
-    get_line_mock.assert_called_once_with(
-        chip_selector=gdo0_chip_selector, line_name=gdo0_line_name
-    )
-    assert line_mock.request.call_count == 1
-    (line_request,) = line_mock.request.call_args[0]
-    assert vars(line_request) == {
-        "consumer": "CC1101:GDO0",
-        "flags": 0,
-        "request_type": gpiod.line_request.EVENT_RISING_EDGE,
-    }
-    assert not line_mock.request.call_args[1]
+    find_line_mock.assert_called_once_with(name=gdo0_gpio_line_name)
     enable_receive_mode_mock.assert_called_once_with()
-    line_mock.event_wait.assert_called_once_with(timeout=timeout)
+    line_mock.wait_for_rising_edge.assert_called_once_with(
+        consumer=b"CC1101:GDO0", timeout_seconds=timeout_seconds
+    )
     if reached_timeout:
         assert packet is None
         command_strobe_mock.assert_called_once_with(0x36)  # SIDLE
