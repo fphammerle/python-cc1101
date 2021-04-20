@@ -20,7 +20,7 @@ import enum
 
 class GDOSignalSelection(enum.IntEnum):
     """
-    GDO{0,1,2}_CFG
+    0x00-0x02 IOCFG{2..0}.GDO?_CFG
 
     Table 41: GDOx Signal Selection (x = 0, 1, or 2)
     """
@@ -31,9 +31,20 @@ class GDOSignalSelection(enum.IntEnum):
     RX_FIFO_AT_OR_ABOVE_THRESHOLD_OR_PACKET_END_REACHED = 0x01
 
 
+class _TransceiveMode(enum.IntEnum):
+    """
+    0x08 PKTCTRL0.PKT_FORMAT
+    """
+
+    FIFO = 0b00
+    SYNCHRONOUS_SERIAL = 0b01
+    RANDOM_TRANSMISSION = 0b10
+    ASYNCHRONOUS_SERIAL = 0b11
+
+
 class PacketLengthMode(enum.IntEnum):
     """
-    PKTCTRL0.LENGTH_CONFIG
+    0x08 PKTCTRL0.LENGTH_CONFIG
     """
 
     FIXED = 0b00
@@ -43,7 +54,7 @@ class PacketLengthMode(enum.IntEnum):
 
 class ModulationFormat(enum.IntEnum):
     """
-    MDMCFG2.MOD_FORMAT
+    0x12 MDMCFG2.MOD_FORMAT
     """
 
     FSK2 = 0b000
@@ -55,7 +66,7 @@ class ModulationFormat(enum.IntEnum):
 
 class SyncMode(enum.IntEnum):
     """
-    MDMCFG2.SYNC_MODE
+    0x12 MDMCFG2.SYNC_MODE
 
     see "14.3 Byte Synchronization"
     """

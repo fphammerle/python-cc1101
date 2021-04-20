@@ -39,6 +39,7 @@ from cc1101.options import (
     ModulationFormat,
     PacketLengthMode,
     SyncMode,
+    _TransceiveMode,
 )
 
 
@@ -47,17 +48,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class Pin(enum.Enum):
     GDO0 = "GDO0"
-
-
-class _TransceiveMode(enum.IntEnum):
-    """
-    PKTCTRL0.PKT_FORMAT
-    """
-
-    FIFO = 0b00
-    SYNCHRONOUS_SERIAL = 0b01
-    RANDOM_TRANSMISSION = 0b10
-    ASYNCHRONOUS_SERIAL = 0b11
 
 
 class MainRadioControlStateMachineState(enum.IntEnum):
