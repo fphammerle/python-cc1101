@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import contextlib
+import datetime
 import enum
 import fcntl
 import logging
@@ -25,6 +26,7 @@ import warnings
 
 import spidev
 
+import cc1101._gpio
 from cc1101.addresses import (
     StrobeAddress,
     ConfigurationRegisterAddress,
@@ -32,7 +34,13 @@ from cc1101.addresses import (
     PatableAddress,
     FIFORegisterAddress,
 )
-from cc1101.options import PacketLengthMode, SyncMode, ModulationFormat
+from cc1101.options import (
+    GDOSignalSelection,
+    ModulationFormat,
+    PacketLengthMode,
+    SyncMode,
+    _TransceiveMode,
+)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,17 +48,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class Pin(enum.Enum):
     GDO0 = "GDO0"
-
-
-class _TransceiveMode(enum.IntEnum):
-    """
-    PKTCTRL0.PKT_FORMAT
-    """
-
-    FIFO = 0b00
-    SYNCHRONOUS_SERIAL = 0b01
-    RANDOM_TRANSMISSION = 0b10
-    ASYNCHRONOUS_SERIAL = 0b11
 
 
 class MainRadioControlStateMachineState(enum.IntEnum):
@@ -537,6 +534,14 @@ class CC1101:
         # 1 PIN_CTRL_EN: default
         # 0 XOSC_FORCE_ON: default
         self._write_burst(ConfigurationRegisterAddress.MCSM0, [0b010100])
+        # > Default is CLK_XOSC/192 (See Table 41 on page 62).
+        # > It is recommended to disable the clock output in initialization,
+        # > in order to optimize RF performance.
+        self._write_burst(
+            ConfigurationRegisterAddress.IOCFG0,
+            # required for _wait_for_packet()
+            [GDOSignalSelection.RX_FIFO_AT_OR_ABOVE_THRESHOLD_OR_PACKET_END_REACHED],
+        )
 
     def __enter__(self) -> "CC1101":
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
@@ -943,7 +948,7 @@ class CC1101:
             self._command_strobe(StrobeAddress.SIDLE)
             self._set_transceive_mode(_TransceiveMode.FIFO)
 
-    def _enable_receive_mode(self) -> None:  # unstable
+    def _enable_receive_mode(self) -> None:
         self._command_strobe(StrobeAddress.SRX)
 
     def _get_received_packet(self) -> typing.Optional[_ReceivedPacket]:  # unstable
@@ -961,3 +966,29 @@ class CC1101:
             checksum_valid=bool(buffer[-1] >> 7),
             link_quality_indicator=buffer[-1] & 0b0111111,
         )
+
+    def _wait_for_packet(  # unstable
+        self,
+        timeout: datetime.timedelta,
+        # https://github.com/hhk7734/python3-gpiod/blob/v1.5.0/py_src/gpiod/libgpiodcxx/__init__.py#L83
+        gdo0_chip: cc1101._gpio.ChipSelector = 0,
+        gdo0_line_name: str = "GPIO24",  # recommended in README.md
+    ) -> typing.Optional[_ReceivedPacket]:
+        """
+        depends on IOCFG0 == 0b00000001 (see _configure_defaults)
+        """
+        # pylint: disable=protected-access
+        gdo0_line = cc1101._gpio.get_line(
+            chip_selector=gdo0_chip, line_name=gdo0_line_name
+        )
+        import gpiod  # pylint: disable=import-outside-toplevel; see get_line()
+
+        # https://github.com/hhk7734/python3-gpiod/blob/v1.2.1/py_src/gpiod/test/button.py#L33
+        gdo0_line_request = gpiod.line_request()
+        gdo0_line_request.consumer = "CC1101:GDO0"
+        gdo0_line_request.request_type = gpiod.line_request.EVENT_RISING_EDGE
+        gdo0_line.request(gdo0_line_request)
+        self._enable_receive_mode()
+        if not gdo0_line.event_wait(timeout=timeout):
+            return None  # timeout
+        return self._get_received_packet()

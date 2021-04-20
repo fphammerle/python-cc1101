@@ -93,7 +93,10 @@ def test___enter__(transceiver, chip_version):
             )
             set_pa_setting_mock.assert_called_once_with(1)
             disable_whitening_mock.assert_called_once_with()
-            write_burst_mock.assert_called_once_with(0x18, [0b010100])
+            assert write_burst_mock.call_args_list == [
+                unittest.mock.call(0x18, [0b010100]),
+                unittest.mock.call(0x02, [0b000001]),
+            ]
 
 
 def test___enter___unsupported_partnum(transceiver):
