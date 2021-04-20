@@ -13,6 +13,9 @@ cc1101 = {editable = true,path = "."}
 # > 3.4
 # https://pypi.org/project/spidev/3.4/
 spidev = {version = "3.4"}
+# python<3.7 compatibility
+# https://github.com/hhk7734/python3-gpiod/commit/e3c69a37a98783ec60194c7da32f7df57e421df4#diff-4411023b37c4dce2d8ffab26c4679ac8e0981a0f7f35364f4de8fbdfd87eec8fR24
+gpiod = "<1.5.0"
 
 [dev-packages]
 # black requires python>=3.6
