@@ -64,9 +64,14 @@ setuptools.setup(
             "cc1101-transmit = cc1101._cli:_transmit",
         ]
     },
-    # apt install python3-spidev
-    # https://github.com/doceme/py-spidev
-    install_requires=["spidev"],
+    install_requires=[
+        # potential alternative: https://salsa.debian.org/debian/libgpiod (python3-libgpiod)
+        # https://github.com/hhk7734/python3-gpiod
+        "gpiod",
+        # apt install python3-spidev
+        # https://github.com/doceme/py-spidev
+        "spidev",
+    ],
     setup_requires=["setuptools_scm"],
     tests_require=["pytest"],
 )
