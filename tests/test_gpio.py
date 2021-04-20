@@ -17,6 +17,7 @@
 
 import ctypes
 import ctypes.util
+import datetime
 import errno
 import re
 import unittest.mock
@@ -84,17 +85,17 @@ def test_line_release(libgpiod_mock):
 
 
 @pytest.mark.parametrize("consumer", (b"CC1101 GDO0", b"test"))
-@pytest.mark.parametrize("timeout_seconds", (21, 42))
+@pytest.mark.parametrize("timeout_seconds", (21.42, 0.1234))
 @pytest.mark.parametrize("reached_timeout", (False, True))
 def test_line_wait_for_rising_edge(
-    libgpiod_mock, consumer: bytes, timeout_seconds: int, reached_timeout: bool
+    libgpiod_mock, consumer: bytes, timeout_seconds: float, reached_timeout: bool
 ):
     pointer = ctypes.c_void_p(1234)
     line = cc1101._gpio.GPIOLine(pointer=pointer)
     libgpiod_mock.gpiod_line_request_rising_edge_events.return_value = 0
     libgpiod_mock.gpiod_line_event_wait.return_value = 0 if reached_timeout else 1
     event_occured = line.wait_for_rising_edge(
-        consumer=consumer, timeout_seconds=timeout_seconds
+        consumer=consumer, timeout=datetime.timedelta(seconds=timeout_seconds)
     )
     assert event_occured is not reached_timeout
     libgpiod_mock.gpiod_line_request_rising_edge_events.assert_called_once_with(
@@ -103,17 +104,18 @@ def test_line_wait_for_rising_edge(
     assert libgpiod_mock.gpiod_line_event_wait.call_count == 1
     wait_args, wait_kwargs = libgpiod_mock.gpiod_line_event_wait.call_args
     assert wait_args[0] == pointer
-    assert wait_args[1].contents.tv_nsec == 0
-    assert wait_args[1].contents.tv_sec == timeout_seconds
+    assert (
+        wait_args[1].contents.tv_sec + wait_args[1].contents.tv_nsec / 10 ** 9
+    ) == pytest.approx(timeout_seconds, abs=1e-10)
     assert not wait_args[2:]
     assert not wait_kwargs
     libgpiod_mock.gpiod_line_release.assert_called_once_with(pointer)
 
 
 @pytest.mark.parametrize("consumer", (b"CC1101 GDO0",))
-@pytest.mark.parametrize("timeout_seconds", (21,))
+@pytest.mark.parametrize("timeout_seconds", (21.42,))
 def test_line_wait_for_rising_edge_busy(
-    libgpiod_mock, consumer: bytes, timeout_seconds: int
+    libgpiod_mock, consumer: bytes, timeout_seconds: float
 ):
     pointer = ctypes.c_void_p(1234)
     line = cc1101._gpio.GPIOLine(pointer=pointer)
@@ -124,4 +126,6 @@ def test_line_wait_for_rising_edge_busy(
         match=r"^Request for rising edge event notifications failed \(EBUSY\)."
         r"\nBlocked by another process\?$",
     ):
-        line.wait_for_rising_edge(consumer=consumer, timeout_seconds=timeout_seconds)
+        line.wait_for_rising_edge(
+            consumer=consumer, timeout=datetime.timedelta(seconds=timeout_seconds)
+        )

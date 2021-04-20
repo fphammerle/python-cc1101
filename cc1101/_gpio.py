@@ -17,6 +17,7 @@
 
 import ctypes
 import ctypes.util
+import datetime
 import errno
 import functools
 
@@ -95,7 +96,9 @@ class GPIOLine:
         # might make debugging easier in case someone calls __del__ twice
         self._pointer = None
 
-    def wait_for_rising_edge(self, consumer: bytes, timeout_seconds: int) -> bool:
+    def wait_for_rising_edge(
+        self, consumer: bytes, timeout: datetime.timedelta
+    ) -> bool:
         """
         Return True, if an event occured; False on timeout.
         """
@@ -112,9 +115,11 @@ class GPIOLine:
                 )
                 + ("\nBlocked by another process?" if err == errno.EBUSY else "")
             )
-        timeout = _c_timespec(timeout_seconds, 0)
+        timeout_timespec = _c_timespec(
+            int(timeout.total_seconds()), timeout.microseconds * 1000
+        )
         result = _load_libgpiod().gpiod_line_event_wait(
-            self._pointer, ctypes.pointer(timeout)
+            self._pointer, ctypes.pointer(timeout_timespec)
         )  # type: int
         _load_libgpiod().gpiod_line_release(self._pointer)
         if result == -1:

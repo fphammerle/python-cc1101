@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import contextlib
+import datetime
 import enum
 import fcntl
 import logging
@@ -968,7 +969,7 @@ class CC1101:
 
     def _wait_for_packet(  # unstable
         self,
-        timeout_seconds: int,
+        timeout: datetime.timedelta,
         gdo0_gpio_line_name: bytes = b"GPIO24",  # recommended in README.md
     ) -> typing.Optional[_ReceivedPacket]:
         """
@@ -977,13 +978,11 @@ class CC1101:
         # pylint: disable=protected-access
         gdo0 = cc1101._gpio.GPIOLine.find(name=gdo0_gpio_line_name)
         self._enable_receive_mode()
-        if not gdo0.wait_for_rising_edge(
-            consumer=b"CC1101:GDO0", timeout_seconds=timeout_seconds
-        ):
+        if not gdo0.wait_for_rising_edge(consumer=b"CC1101:GDO0", timeout=timeout):
             self._command_strobe(StrobeAddress.SIDLE)
             _LOGGER.debug(
-                "reached timeout of %d seconds while waiting for packet",
-                timeout_seconds,
+                "reached timeout of %.02f seconds while waiting for packet",
+                timeout.total_seconds(),
             )
             return None  # timeout
         return self._get_received_packet()

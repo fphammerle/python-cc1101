@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import datetime
 import unittest.mock
 
 import pytest
@@ -49,10 +50,8 @@ def test__get_received_packet(transceiver, payload):
 
 @pytest.mark.parametrize("gdo0_gpio_line_name", (b"GPIO24", b"GPIO25"))
 @pytest.mark.parametrize("reached_timeout", (True, False))
-@pytest.mark.parametrize("timeout_seconds", (2,))
-def test__wait_for_packet(
-    transceiver, gdo0_gpio_line_name, timeout_seconds, reached_timeout
-):
+@pytest.mark.parametrize("timeout", (datetime.timedelta(seconds=4),))
+def test__wait_for_packet(transceiver, gdo0_gpio_line_name, timeout, reached_timeout):
     line_mock = unittest.mock.MagicMock()
     line_mock.wait_for_rising_edge.return_value = not reached_timeout
     with unittest.mock.patch(
@@ -65,13 +64,13 @@ def test__wait_for_packet(
         transceiver, "_command_strobe"
     ) as command_strobe_mock:
         packet = transceiver._wait_for_packet(
-            timeout_seconds=timeout_seconds,
+            timeout=timeout,
             gdo0_gpio_line_name=gdo0_gpio_line_name,
         )
     find_line_mock.assert_called_once_with(name=gdo0_gpio_line_name)
     enable_receive_mode_mock.assert_called_once_with()
     line_mock.wait_for_rising_edge.assert_called_once_with(
-        consumer=b"CC1101:GDO0", timeout_seconds=timeout_seconds
+        consumer=b"CC1101:GDO0", timeout=timeout
     )
     if reached_timeout:
         assert packet is None
