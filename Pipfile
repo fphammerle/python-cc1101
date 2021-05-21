@@ -27,6 +27,8 @@ pytest-cov = "*"
 # python3.5 compatibility
 # https://github.com/PyCQA/astroid/commit/d81f07becf3243a84e0baaa3493ce74cafed8022#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R52
 astroid = "<2.5"
+# https://github.com/pallets/click/commit/9374365fdd5af45fc3dc4047963fa30aad9ce15c
+click = "<8"
 # https://github.com/python/importlib_metadata/commit/107f9029fd5807c6579b881db19e11a0488f0675
 importlib-metadata = "<3"
 isort = "<5"
