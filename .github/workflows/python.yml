@@ -14,14 +14,13 @@ on:
 
 jobs:
   code-format:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version:
-        - 3.8
+        python-verison: ['3.9']
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v1
+    - uses: actions/checkout@v2.3.4
+    - uses: actions/setup-python@v2.2.2
       with:
         python-version: ${{ matrix.python-version }}
     - run: pip install --upgrade pipenv==2020.8.13
@@ -67,3 +66,21 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # https://github.com/TheKevJames/coveralls-python/issues/240#issuecomment-758336355
         COVERALLS_SERVICE_NAME: github
+  check-links:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-verison: ['3.9']
+    steps:
+    - uses: actions/checkout@v2.3.4
+    - uses: actions/setup-python@v2.2.2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: pip install --upgrade pipenv==2020.8.13
+    - run: pipenv install --python "$PYTHON_VERSION" --deploy --dev
+      env:
+        PYTHON_VERSION: ${{ matrix.python-version }}
+    - run: pipenv graph
+    # `--include '*.md'` fails for https://securipi.co.uk/cc1101.pdf (HTTP403).
+    # `--include '*.py'` identifies `logging.INFO` as an url.
+    - run: pipenv run blinkcheck --include CHANGELOG.md
