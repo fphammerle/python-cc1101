@@ -15,37 +15,20 @@ cc1101 = {editable = true,path = "."}
 spidev = "==3.4"
 
 [dev-packages]
-# black requires python>=3.6
-# https://github.com/psf/black/commit/e74117f172e29e8a980e2c9de929ad50d3769150#diff-2eeaed663bd0d25b7e608891384b7298R51
-black = {version = "==20.8b1", markers = "python_version >= '3.6'"}
+black = "==20.8b1"
 # >=0.1.1 for https://github.com/blu3r4y/blinkcheck/pull/2
 blinkcheck = {version = ">=0.1.1", markers = "python_version >= '3.8'"}
 mypy = "*"
-#pylint = "*"
+pylint = "*"
 pylint-import-requirements = "*"
-#pytest = "*"
+pytest = "*"
 pytest-cov = "*"
 
-# python3.5 compatibility
-# https://github.com/PyCQA/astroid/commit/d81f07becf3243a84e0baaa3493ce74cafed8022#diff-60f61ab7a8d1910d86d9fda2261620314edcae5894d5aaa236b821c7256badd7R52
-astroid = "<2.5"
-# https://github.com/pallets/click/commit/9374365fdd5af45fc3dc4047963fa30aad9ce15c
-click = "<8"
-# https://github.com/python/importlib_metadata/commit/107f9029fd5807c6579b881db19e11a0488f0675
-importlib-metadata = "<3"
-isort = "<5"
-# blinkcheck
-packaging = {version = "*", markers = "python_version >= '3.8'"}
-# workaround https://github.com/pytest-dev/pytest/issues/3953
-pathlib2 = {version = "*", markers="python_version < '3.6'"}
-# https://github.com/PyCQA/pylint/commit/6e2de8e3a2e2c5586e876ca305f0844bdd822db3
-pylint = "<2.7"
-# https://github.com/pytest-dev/pytest/commit/179f4326df2b644f0ab73f78e4770dafcbdcd89f#diff-fa602a8a75dc9dcc92261bac5f533c2a85e34fcceaff63b3a3a81d9acde2fc52R52
-pytest = "<6.2"
-# blinkcheck
-requests = {version = "*", markers = "python_version >= '3.8'"}
-# https://github.com/jaraco/zipp/commit/05a3c52b4d41690e0471a2e283cffb500dc0329a
-zipp = "<2"
+# python3.10 compatibility
+# >   File "[...]/lib/python3.10/site-packages/mypy/main.py", line 11, in <module>
+# >     from typing_extensions import Final, NoReturn
+# > ModuleNotFoundError: No module named 'typing_extensions'
+typing_extensions = {version = "*", markers = ""}
 
 [requires]
 python_version = "3"

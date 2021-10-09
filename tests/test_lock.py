@@ -33,7 +33,7 @@ def spidev_mock(tmp_path):
             self._file = None
 
         def open(self, bus, select):
-            path = tmp_path.joinpath("spidev{}.{}~".format(bus, select))
+            path = tmp_path.joinpath(f"spidev{bus}.{select}~")
             self._file = path.open("w+")
 
         def fileno(self):

@@ -34,7 +34,7 @@ def test___init__select_device(bus, chip_select):
         transceiver = cc1101.CC1101(spi_bus=bus, spi_chip_select=chip_select)
     assert transceiver._spi_bus == bus
     assert transceiver._spi_chip_select == chip_select
-    assert transceiver._spi_device_path == "/dev/spidev{}.{}".format(bus, chip_select)
+    assert transceiver._spi_device_path == f"/dev/spidev{bus}.{chip_select}"
     transceiver._spi.open.side_effect = SystemExit
     with pytest.raises(SystemExit):
         with transceiver:
@@ -121,7 +121,7 @@ def test___enter___unsupported_chip_version(transceiver):
         }[r]
         with pytest.raises(
             ValueError,
-            match=r"^{}$".format(
+            match=r"^{}$".format(  # pylint: disable=consider-using-f-string
                 re.escape(
                     "Unsupported chip version 0x15 (expected one of [0x04, 0x14])"
                 )
@@ -156,9 +156,7 @@ def test___enter__permission_error(transceiver, bus, chip_select):
     transceiver._spi.open.side_effect = PermissionError("[Errno 13] Permission denied")
     transceiver._spi_bus = bus
     transceiver._spi_chip_select = chip_select
-    with pytest.raises(
-        PermissionError, match=r"\s/dev/spidev{}.{}\s".format(bus, chip_select)
-    ):
+    with pytest.raises(PermissionError, match=f"\\s/dev/spidev{bus}.{chip_select}\\s"):
         with transceiver:
             pass
 

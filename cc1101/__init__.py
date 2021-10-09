@@ -28,11 +28,11 @@ import spidev
 
 import cc1101._gpio
 from cc1101.addresses import (
-    StrobeAddress,
     ConfigurationRegisterAddress,
-    StatusRegisterAddress,
-    PatableAddress,
     FIFORegisterAddress,
+    PatableAddress,
+    StatusRegisterAddress,
+    StrobeAddress,
 )
 from cc1101.options import (
     GDOSignalSelection,
@@ -41,7 +41,6 @@ from cc1101.options import (
     SyncMode,
     _TransceiveMode,
 )
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +73,7 @@ class _ReceivedPacket:  # unstable
 
     def __init__(
         self,
-        # *,
+        *,
         payload: bytes,
         rssi_index: int,  # byte
         checksum_valid: bool,
@@ -99,19 +98,17 @@ class _ReceivedPacket:  # unstable
         return self._rssi_index / 2 - self._RSSI_OFFSET_dB
 
     def __str__(self) -> str:
-        return "{}(RSSI {:.0f}dBm, 0x{})".format(
-            type(self).__name__, self.rssi_dbm, self.payload.hex()
-        )
+        return f"{type(self).__name__}(RSSI {self.rssi_dbm:.0f}dBm, 0x{self.payload.hex()})"
 
 
 def _format_patable(settings: typing.Iterable[int], insert_spaces: bool) -> str:
     # "Table 39: Optimum PATABLE Settings" uses hexadecimal digits
     # "0" for brevity
-    settings_hex = tuple(map(lambda s: "0" if s == 0 else "0x{:x}".format(s), settings))
+    settings_hex = tuple(map(lambda s: "0" if s == 0 else f"0x{s:x}", settings))
     if len(settings_hex) == 1:
-        return "({},)".format(settings_hex[0])
+        return f"({settings_hex[0]},)"
     delimiter = ", " if insert_spaces else ","
-    return "({})".format(delimiter.join(settings_hex))
+    return f"({delimiter.join(settings_hex)})"
 
 
 class CC1101:
@@ -193,7 +190,7 @@ class CC1101:
     @property
     def _spi_device_path(self) -> str:
         # https://github.com/doceme/py-spidev/blob/v3.4/spidev_module.c#L1286
-        return "/dev/spidev{}.{}".format(self._spi_bus, self._spi_chip_select)
+        return f"/dev/spidev{self._spi_bus}.{self._spi_chip_select}"
 
     @staticmethod
     def _log_chip_status_byte(chip_status: int) -> None:
@@ -272,7 +269,7 @@ class CC1101:
 
     @classmethod
     def _filter_bandwidth_floating_point_to_real(
-        cls, mantissa: int, exponent: int
+        cls, *, mantissa: int, exponent: int
     ) -> float:
         """
         See "13 Receiver Channel Filter Bandwidth"
@@ -336,7 +333,9 @@ class CC1101:
         )
 
     @classmethod
-    def _symbol_rate_floating_point_to_real(cls, mantissa: int, exponent: int) -> float:
+    def _symbol_rate_floating_point_to_real(
+        cls, *, mantissa: int, exponent: int
+    ) -> float:
         # see "12 Data Rate Programming"
         return (
             (256 + mantissa)
@@ -404,7 +403,7 @@ class CC1101:
         self,
         mode: SyncMode,
         *,
-        _carrier_sense_threshold_enabled: typing.Optional[bool] = None  # unstable
+        _carrier_sense_threshold_enabled: typing.Optional[bool] = None,  # unstable
     ) -> None:
         """
         MDMCFG2.SYNC_MODE
@@ -455,9 +454,9 @@ class CC1101:
         """
         if length < 1:
             raise ValueError(
-                "invalid preamble length {} given".format(length)
-                + "\ncall .set_sync_mode(cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD)"
-                + " to disable preamble"
+                f"invalid preamble length {length} given"
+                "\ncall .set_sync_mode(cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD)"
+                " to disable preamble"
             )
         if length % 3 == 0:
             index = math.log2(length / 3) * 2 + 1
@@ -465,8 +464,8 @@ class CC1101:
             index = math.log2(length / 2) * 2
         if not index.is_integer() or index < 0 or index > 0b111:
             raise ValueError(
-                "unsupported preamble length: {} bytes".format(length)
-                + "\nsee MDMCFG1.NUM_PREAMBLE in cc1101 docs"
+                f"unsupported preamble length: {length} bytes"
+                "\nsee MDMCFG1.NUM_PREAMBLE in cc1101 docs"
             )
         self._set_preamble_length_index(int(index))
 
@@ -504,16 +503,15 @@ class CC1101:
         partnum = self._read_status_register(StatusRegisterAddress.PARTNUM)
         if partnum != self._SUPPORTED_PARTNUM:
             raise ValueError(
-                "unexpected chip part number {} (expected: {})".format(
-                    partnum, self._SUPPORTED_PARTNUM
-                )
+                f"unexpected chip part number {partnum} (expected: {self._SUPPORTED_PARTNUM})"
             )
         version = self._read_status_register(StatusRegisterAddress.VERSION)
         if version not in self._SUPPORTED_VERSIONS:
-            msg = "Unsupported chip version 0x{:02x} (expected one of [{}])".format(
-                version,
-                ", ".join("0x{:02x}".format(v) for v in self._SUPPORTED_VERSIONS),
+            msg = f"Unsupported chip version 0x{version:02x}"
+            supported_versions = ", ".join(
+                f"0x{v:02x}" for v in self._SUPPORTED_VERSIONS
             )
+            msg += f" (expected one of [{supported_versions}])"
             if version == 0:
                 msg += (
                     "\n\nPlease verify that all required pins are connected"
@@ -549,11 +547,11 @@ class CC1101:
             self._spi.open(self._spi_bus, self._spi_chip_select)
         except PermissionError as exc:
             raise PermissionError(
-                "Could not access {}".format(self._spi_device_path)
-                + "\nVerify that the current user has both read and write access."
-                + "\nOn some systems, like Raspberry Pi OS / Raspbian,"
-                + "\n\tsudo usermod -a -G spi $USER"
-                + "\nfollowed by a re-login grants sufficient permissions."
+                f"Could not access {self._spi_device_path}"
+                "\nVerify that the current user has both read and write access."
+                "\nOn some systems, like Raspberry Pi OS / Raspbian,"
+                "\n\tsudo usermod -a -G spi $USER"
+                "\nfollowed by a re-login grants sufficient permissions."
             ) from exc
         if self._lock_spi_device:
             # advisory, exclusive, non-blocking
@@ -566,9 +564,7 @@ class CC1101:
             self._configure_defaults()
             marcstate = self.get_main_radio_control_state_machine_state()
             if marcstate != MainRadioControlStateMachineState.IDLE:
-                raise ValueError(
-                    "expected marcstate idle (actual: {})".format(marcstate.name)
-                )
+                raise ValueError(f"expected marcstate idle (actual: {marcstate.name})")
         except:
             self._spi.close()
             raise
@@ -655,9 +651,8 @@ class CC1101:
             # > can do about the situation, but the event should still be noted.
             # https://docs.python.org/3/howto/logging.html#when-to-use-logging
             warnings.warn(
-                "CC1101 is unable to transmit at frequencies below {:.1f} MHz".format(
-                    self._TRANSMIT_MIN_FREQUENCY_HERTZ / 1e6
-                )
+                "CC1101 is unable to transmit at frequencies"
+                f" below {(self._TRANSMIT_MIN_FREQUENCY_HERTZ / 1e6):.1f} MHz"
             )
         self._set_base_frequency_control_word(
             self._hertz_to_frequency_control_word(freq)
@@ -666,31 +661,27 @@ class CC1101:
     def __str__(self) -> str:
         sync_mode = self.get_sync_mode()
         attrs = (
-            "marcstate={}".format(
-                self.get_main_radio_control_state_machine_state().name.lower()
-            ),
-            "base_frequency={:.2f}MHz".format(
-                self.get_base_frequency_hertz() / 10 ** 6
-            ),
-            "symbol_rate={:.2f}kBaud".format(self.get_symbol_rate_baud() / 1000),
-            "modulation_format={}".format(self.get_modulation_format().name),
-            "sync_mode={}".format(sync_mode.name),
-            "preamble_length={}B".format(self.get_preamble_length_bytes())
+            f"marcstate={self.get_main_radio_control_state_machine_state().name.lower()}",
+            f"base_frequency={(self.get_base_frequency_hertz() / 1e6):.2f}MHz",
+            f"symbol_rate={(self.get_symbol_rate_baud() / 1000):.2f}kBaud",
+            f"modulation_format={self.get_modulation_format().name}",
+            f"sync_mode={sync_mode.name}",
+            f"preamble_length={self.get_preamble_length_bytes()}B"
             if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
             else None,
-            "sync_word=0x{}".format(self.get_sync_word().hex())
+            f"sync_word=0x{self.get_sync_word().hex()}"
             if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
             else None,
-            "packet_length{}{}B".format(
+            "packet_length{}{}B".format(  # pylint: disable=consider-using-f-string
                 "≤"
                 if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
                 else "=",
                 self.get_packet_length_bytes(),
             ),
-            "output_power={}".format(
-                _format_patable(self.get_output_power(), insert_spaces=False)
-            ),
+            "output_power="
+            + _format_patable(self.get_output_power(), insert_spaces=False),
         )
+        # pylint: disable=consider-using-f-string
         return "CC1101({})".format(", ".join(filter(None, attrs)))
 
     def get_configuration_register_values(
@@ -728,7 +719,7 @@ class CC1101:
         See .set_sync_word()
         """
         if len(sync_word) != 2:
-            raise ValueError("expected two bytes, got {!r}".format(sync_word))
+            raise ValueError(f"expected two bytes, got {sync_word!r}")
         self._write_burst(
             start_register=ConfigurationRegisterAddress.SYNC1, values=list(sync_word)
         )
@@ -750,9 +741,7 @@ class CC1101:
         """
         see get_packet_length_bytes()
         """
-        assert 1 <= packet_length <= 255, "unsupported packet length {}".format(
-            packet_length
-        )
+        assert 1 <= packet_length <= 255, f"unsupported packet length {packet_length}"
         self._write_burst(
             start_register=ConfigurationRegisterAddress.PKTLEN, values=[packet_length]
         )
@@ -891,14 +880,12 @@ class CC1101:
         packet_length = self.get_packet_length_bytes()
         if packet_length_mode == PacketLengthMode.VARIABLE:
             if not payload:
-                raise ValueError("empty payload {!r}".format(payload))
+                raise ValueError(f"empty payload {payload!r}")
             if len(payload) > packet_length:
                 raise ValueError(
-                    "payload exceeds maximum payload length of {} bytes".format(
-                        packet_length
-                    )
-                    + "\nsee .get_packet_length_bytes()"
-                    + "\npayload: {!r}".format(payload)
+                    f"payload exceeds maximum payload length of {packet_length} bytes"
+                    "\nsee .get_packet_length_bytes()"
+                    f"\npayload: {payload!r}"
                 )
             payload = int.to_bytes(len(payload), length=1, byteorder="big") + payload
         elif (
@@ -906,18 +893,14 @@ class CC1101:
             and len(payload) != packet_length
         ):
             raise ValueError(
-                "expected payload length of {} bytes, got {}".format(
-                    packet_length, len(payload)
-                )
+                f"expected payload length of {packet_length} bytes, got {len(payload)}"
                 + "\nsee .set_packet_length_mode() and .get_packet_length_bytes()"
-                + "\npayload: {!r}".format(payload)
+                + f"\npayload: {payload!r}"
             )
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != MainRadioControlStateMachineState.IDLE:
             raise Exception(
-                "device must be idle before transmission (current marcstate: {})".format(
-                    marcstate.name
-                )
+                f"device must be idle before transmission (current marcstate: {marcstate.name})"
             )
         self._flush_tx_fifo_buffer()
         self._write_burst(FIFORegisterAddress.TX, list(payload))

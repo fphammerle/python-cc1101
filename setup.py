@@ -50,11 +50,11 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: POSIX :: Linux",
         # .github/workflows/python.yml
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Home Automation",
         "Topic :: Communications",
     ],
@@ -64,6 +64,8 @@ setuptools.setup(
             "cc1101-transmit = cc1101._cli:_transmit",
         ]
     },
+    # f-strings, variable type hints, force kwargs with *
+    python_requires=">=3.6",
     install_requires=[
         # apt install python3-spidev
         # https://github.com/doceme/py-spidev

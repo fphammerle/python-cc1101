@@ -42,8 +42,7 @@ def test_line_find_permission_denied(libgpiod_mock, name):
     libgpiod_mock.gpiod_line_find.return_value = 0
     ctypes.set_errno(errno.EACCES)
     with pytest.raises(
-        PermissionError,
-        match=r"^Failed to access GPIO line {!r}\.\n".format(re.escape(name)),
+        PermissionError, match=f"^Failed to access GPIO line {re.escape(name)!r}\\.\\n"
     ):
         cc1101._gpio.GPIOLine.find(name.encode())
 
@@ -53,8 +52,7 @@ def test_line_find_non_existing(libgpiod_mock, name):
     libgpiod_mock.gpiod_line_find.return_value = 0
     ctypes.set_errno(errno.ENOENT)
     with pytest.raises(
-        FileNotFoundError,
-        match=r"^GPIO line {!r} does not exist\.\n".format(re.escape(name)),
+        FileNotFoundError, match=f"^GPIO line {re.escape(name)!r} does not exist\\.\\n"
     ):
         cc1101._gpio.GPIOLine.find(name.encode())
 
@@ -64,8 +62,7 @@ def test_line_find_unknown_error(libgpiod_mock, name):
     libgpiod_mock.gpiod_line_find.return_value = 0
     ctypes.set_errno(errno.ENOANO)
     with pytest.raises(
-        OSError,
-        match=r"^Failed to open GPIO line {!r}: ENOANO$".format(re.escape(name)),
+        OSError, match=f"^Failed to open GPIO line {re.escape(name)!r}: ENOANO$"
     ):
         cc1101._gpio.GPIOLine.find(name.encode())
 
@@ -101,7 +98,7 @@ def test_line_wait_for_rising_edge(
     libgpiod_mock.gpiod_line_request_rising_edge_events.assert_called_once_with(
         pointer, consumer
     )
-    assert libgpiod_mock.gpiod_line_event_wait.call_count == 1
+    libgpiod_mock.gpiod_line_event_wait.assert_called_once()
     wait_args, wait_kwargs = libgpiod_mock.gpiod_line_event_wait.call_args
     assert wait_args[0] == pointer
     assert (

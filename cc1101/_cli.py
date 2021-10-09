@@ -76,6 +76,7 @@ def _init_logging(args: argparse.Namespace) -> None:
 
 
 def _configure_via_args(
+    *,
     transceiver: cc1101.CC1101,
     args: argparse.Namespace,
     packet_length_if_fixed: typing.Optional[int],
@@ -134,10 +135,9 @@ def _export_config():
             )
         print("]")
         print(
-            "# PATABLE = {}".format(
-                # pylint: disable=protected-access; internal function & method
-                cc1101._format_patable(transceiver._get_patable(), insert_spaces=True)
-            )
+            # pylint: disable=protected-access; internal function & method
+            "# PATABLE = "
+            + cc1101._format_patable(transceiver._get_patable(), insert_spaces=True)
         )
 
 

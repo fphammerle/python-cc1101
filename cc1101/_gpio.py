@@ -60,31 +60,28 @@ class GPIOLine:
     def find(cls, name: bytes) -> "GPIOLine":
         # > If this routine succeeds, the user must manually close the GPIO chip
         # > owning this line to avoid memory leaks.
-        pointer = _load_libgpiod().gpiod_line_find(name)  # type: int
+        pointer: int = _load_libgpiod().gpiod_line_find(name)
         # > If the line could not be found, this functions sets errno to ENOENT.
         if pointer == 0:
             err = ctypes.get_errno()
             if err == errno.EACCES:
                 # > [PermissionError] corresponds to errno EACCES and EPERM.
                 raise PermissionError(
-                    "Failed to access GPIO line {!r}.".format(name.decode())
-                    + "\nVerify that the current user has read and write access for /dev/gpiochip*."
-                    + "\nOn some systems, like Raspberry Pi OS / Raspbian,"
-                    + "\n\tsudo usermod -a -G gpio $USER"
-                    + "\nfollowed by a re-login grants sufficient permissions."
+                    f"Failed to access GPIO line {name.decode()!r}."
+                    "\nVerify that the current user has read and write access for /dev/gpiochip*."
+                    "\nOn some systems, like Raspberry Pi OS / Raspbian,"
+                    "\n\tsudo usermod -a -G gpio $USER"
+                    "\nfollowed by a re-login grants sufficient permissions."
                 )
             if err == errno.ENOENT:
                 # > [FileNotFoundError] corresponds to errno ENOENT.
                 # https://docs.python.org/3/library/exceptions.html#FileNotFoundError
                 raise FileNotFoundError(
-                    "GPIO line {!r} does not exist.".format(name.decode())
-                    + "\nRun command `gpioinfo` to get a list of all available GPIO lines."
+                    f"GPIO line {name.decode()!r} does not exist."
+                    "\nRun command `gpioinfo` to get a list of all available GPIO lines."
                 )
             raise OSError(
-                "Failed to open GPIO line {!r}: {}".format(
-                    name.decode(),
-                    errno.errorcode[err],
-                )
+                f"Failed to open GPIO line {name.decode()!r}: {errno.errorcode[err]}"
             )
         return cls(pointer=ctypes.c_void_p(pointer))
 
@@ -97,7 +94,7 @@ class GPIOLine:
         self._pointer = None
 
     def wait_for_rising_edge(
-        self, consumer: bytes, timeout: datetime.timedelta
+        self, *, consumer: bytes, timeout: datetime.timedelta
     ) -> bool:
         """
         Return True, if an event occured; False on timeout.
@@ -110,17 +107,15 @@ class GPIOLine:
         ):
             err = ctypes.get_errno()
             raise OSError(
-                "Request for rising edge event notifications failed ({}).".format(
-                    errno.errorcode[err]
-                )
+                f"Request for rising edge event notifications failed ({errno.errorcode[err]})."
                 + ("\nBlocked by another process?" if err == errno.EBUSY else "")
             )
         timeout_timespec = _c_timespec(
             int(timeout.total_seconds()), timeout.microseconds * 1000
         )
-        result = _load_libgpiod().gpiod_line_event_wait(
+        result: int = _load_libgpiod().gpiod_line_event_wait(
             self._pointer, ctypes.pointer(timeout_timespec)
-        )  # type: int
+        )
         _load_libgpiod().gpiod_line_release(self._pointer)
         if result == -1:
             raise OSError("Failed to wait for rising edge event notification.")

@@ -80,8 +80,8 @@ def test_transmit_fixed(caplog, transceiver, payload):
         (
             "cc1101",
             20,
-            "transmitting 0x{} ({!r})".format(
-                "".join("{:02x}".format(b) for b in payload), payload
+            "transmitting 0x{} ({!r})".format(  # pylint: disable=consider-using-f-string
+                "".join(f"{b:02x}" for b in payload), payload
             ),
         )
     ]

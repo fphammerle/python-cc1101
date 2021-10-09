@@ -147,7 +147,7 @@ def test_set_base_frequency_hertz_low_warning(transceiver, freq_hz, warn):
     ) as set_control_word_mock:
         with warnings.catch_warnings(record=True) as caught_warnings:
             transceiver.set_base_frequency_hertz(freq_hz)
-    assert set_control_word_mock.call_count == 1
+    set_control_word_mock.assert_called_once()
     if warn:
         assert len(caught_warnings) == 1
         assert (
