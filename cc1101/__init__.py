@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import contextlib
 import datetime
 import enum
@@ -541,7 +543,7 @@ class CC1101:
             [GDOSignalSelection.RX_FIFO_AT_OR_ABOVE_THRESHOLD_OR_PACKET_END_REACHED],
         )
 
-    def __enter__(self) -> "CC1101":
+    def __enter__(self) -> CC1101:
         # https://docs.python.org/3/reference/datamodel.html#object.__enter__
         try:
             self._spi.open(self._spi_bus, self._spi_chip_select)

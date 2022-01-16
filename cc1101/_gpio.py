@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import ctypes
 import ctypes.util
 import datetime
@@ -57,7 +59,7 @@ class GPIOLine:
         self._pointer = pointer
 
     @classmethod
-    def find(cls, name: bytes) -> "GPIOLine":
+    def find(cls, name: bytes) -> GPIOLine:
         # > If this routine succeeds, the user must manually close the GPIO chip
         # > owning this line to avoid memory leaks.
         pointer: int = _load_libgpiod().gpiod_line_find(name)

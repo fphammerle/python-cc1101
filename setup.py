@@ -45,12 +45,11 @@ setuptools.setup(
     ],
     classifiers=[
         # https://pypi.org/classifiers/
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: POSIX :: Linux",
         # .github/workflows/python.yml
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -64,8 +63,9 @@ setuptools.setup(
             "cc1101-transmit = cc1101._cli:_transmit",
         ]
     },
-    # f-strings, variable type hints, force kwargs with *
-    python_requires=">=3.6",
+    # >=3.6 f-strings, variable type hints, force kwargs with *
+    # >=3.7 postponed evaluation of type annotations (PEP563)
+    python_requires=">=3.7",
     install_requires=[
         # apt install python3-spidev
         # https://github.com/doceme/py-spidev
