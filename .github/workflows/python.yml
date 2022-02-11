@@ -20,7 +20,7 @@ jobs:
         python-verison: ['3.9']
     steps:
     - uses: actions/checkout@v2.4.0
-    - uses: actions/setup-python@v2.3.1
+    - uses: actions/setup-python@v2.3.2
       with:
         python-version: ${{ matrix.python-version }}
     - run: pip install --upgrade pipenv==2020.8.13
@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
     steps:
     - uses: actions/checkout@v2.4.0
-    - uses: actions/setup-python@v2.3.1
+    - uses: actions/setup-python@v2.3.2
       with:
         python-version: ${{ matrix.python-version }}
     - run: pip install --upgrade pipenv==2020.8.13
@@ -71,7 +71,7 @@ jobs:
         python-verison: ['3.9']
     steps:
     - uses: actions/checkout@v2.4.0
-    - uses: actions/setup-python@v2.3.1
+    - uses: actions/setup-python@v2.3.2
       with:
         python-version: ${{ matrix.python-version }}
     - run: pip install --upgrade pipenv==2020.8.13
