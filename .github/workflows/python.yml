@@ -19,7 +19,7 @@ jobs:
       matrix:
         python-verison: ['3.9']
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
@@ -40,7 +40,7 @@ jobs:
         - '3.10'
       fail-fast: false
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
@@ -70,7 +70,7 @@ jobs:
       matrix:
         python-verison: ['3.9']
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
