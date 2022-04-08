@@ -15,7 +15,7 @@ cc1101 = {editable = true,path = "."}
 spidev = "==3.4"
 
 [dev-packages]
-black = "==20.8b1"
+black = "*"
 # >=0.1.1 for https://github.com/blu3r4y/blinkcheck/pull/2
 blinkcheck = {version = ">=0.1.1", markers = "python_version >= '3.8'"}
 mypy = "*"

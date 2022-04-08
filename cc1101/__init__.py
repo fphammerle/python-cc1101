@@ -147,7 +147,7 @@ class CC1101:
     _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ = 26e6
     # see "21 Frequency Programming"
     # > f_carrier = f_XOSC / 2**16 * (FREQ + CHAN * ((256 + CHANSPC_M) * 2**CHANSPC_E-2))
-    _FREQUENCY_CONTROL_WORD_HERTZ_FACTOR = _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2 ** 16
+    _FREQUENCY_CONTROL_WORD_HERTZ_FACTOR = _CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2**16
 
     # roughly estimated / tested with SDR receiver, docs specify:
     # > can [...] be programmed for operation at other frequencies
@@ -277,7 +277,7 @@ class CC1101:
         See "13 Receiver Channel Filter Bandwidth"
         """
         return cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / (
-            8 * (4 + mantissa) * (2 ** exponent)
+            8 * (4 + mantissa) * (2**exponent)
         )
 
     def _get_filter_bandwidth_hertz(self) -> float:
@@ -341,9 +341,9 @@ class CC1101:
         # see "12 Data Rate Programming"
         return (
             (256 + mantissa)
-            * (2 ** exponent)
+            * (2**exponent)
             * cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ
-            / (2 ** 28)
+            / (2**28)
         )
 
     @classmethod
@@ -354,14 +354,14 @@ class CC1101:
             math.log2(real / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ) + 20
         )
         mantissa = round(
-            real * 2 ** 28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2 ** exponent
+            real * 2**28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2**exponent
             - 256
         )
         if mantissa == 256:
             exponent += 1
             mantissa = 0
-        assert 0 < exponent <= 2 ** 4, exponent
-        assert mantissa <= 2 ** 8, mantissa
+        assert 0 < exponent <= 2**4, exponent
+        assert mantissa <= 2**8, mantissa
         return mantissa, exponent
 
     def get_symbol_rate_baud(self) -> float:

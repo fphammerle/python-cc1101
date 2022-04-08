@@ -102,7 +102,7 @@ def test_line_wait_for_rising_edge(
     wait_args, wait_kwargs = libgpiod_mock.gpiod_line_event_wait.call_args
     assert wait_args[0] == pointer
     assert (
-        wait_args[1].contents.tv_sec + wait_args[1].contents.tv_nsec / 10 ** 9
+        wait_args[1].contents.tv_sec + wait_args[1].contents.tv_nsec / 10**9
     ) == pytest.approx(timeout_seconds, abs=1e-10)
     assert not wait_args[2:]
     assert not wait_kwargs
