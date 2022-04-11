@@ -29,6 +29,8 @@ pytest-cov = "*"
 # >     from typing_extensions import Final, NoReturn
 # > ModuleNotFoundError: No module named 'typing_extensions'
 typing_extensions = {version = "*", markers = ""}
+# mypy on python<3.8
+typed-ast = {markers = "python_version < '3.8'"}
 
 [requires]
 python_version = "3"
