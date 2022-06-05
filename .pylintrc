@@ -1,9 +1,27 @@
 [MASTER]
 
-extension-pkg-whitelist = spidev
+extension-pkg-whitelist=spidev
 
-[MESSAGE CONTROL]
+load-plugins=pylint.extensions.check_elif,
+             pylint.extensions.comparison_placement,
+             pylint.extensions.confusing_elif,
+             pylint.extensions.consider_ternary_expression,
+             pylint.extensions.emptystring,
+             pylint.extensions.eq_without_hash,
+             pylint.extensions.for_any_all,
+             pylint.extensions.mccabe,
+             pylint.extensions.no_self_use,
+             pylint.extensions.overlapping_exceptions,
+             pylint.extensions.private_import,
+             pylint.extensions.redefined_loop_name,
+             pylint.extensions.redefined_variable_type,
+             pylint.extensions.set_membership,
+             pylint.extensions.typing
 
-disable = missing-class-docstring,
-          missing-function-docstring,
-          missing-module-docstring
+[MESSAGES CONTROL]
+
+disable=consider-alternative-union-syntax, # requires python>=3.10
+        deprecated-typing-alias, # requires python>=3.9, e.g. for dict[...]
+        missing-class-docstring,
+        missing-function-docstring,
+        missing-module-docstring

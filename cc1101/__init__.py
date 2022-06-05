@@ -460,7 +460,7 @@ class CC1101:
                 "\ncall .set_sync_mode(cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD)"
                 " to disable preamble"
             )
-        if length % 3 == 0:
+        if length % 3 == 0:  # pylint: disable=consider-ternary-expression
             index = math.log2(length / 3) * 2 + 1
         else:
             index = math.log2(length / 2) * 2
