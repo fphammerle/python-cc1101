@@ -40,15 +40,16 @@ def test_configure_device(args, packet_length_mode, checksum_disabled):
         with unittest.mock.patch("sys.argv", args):
             cc1101._cli._export_config()
     transceiver_class_mock.assert_called_once_with(lock_spi_device=True)
-    transceiver_mock = transceiver_class_mock().__enter__()
+    with transceiver_class_mock() as transceiver_mock:
+        pass
     if packet_length_mode is None:
-        transceiver_mock.__enter__().set_packet_length_mode.assert_not_called()
+        transceiver_mock.set_packet_length_mode.assert_not_called()
     else:
         transceiver_mock.set_packet_length_mode.assert_called_once_with(
             packet_length_mode
         )
     transceiver_mock.set_packet_length_bytes.assert_not_called()
-    if checksum_disabled:
+    if checksum_disabled:  # pylint: disable=duplicate-code
         transceiver_mock.disable_checksum.assert_called_once_with()
     else:
         transceiver_mock.disable_checksum.assert_not_called()
@@ -68,30 +69,30 @@ def test_configure_device(args, packet_length_mode, checksum_disabled):
     ),
 )
 def test_configure_device_output_power_settings(args, output_power_settings):
-    with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
+    with unittest.mock.patch("cc1101.CC1101") as transceiver_class_mock:
         with unittest.mock.patch("sys.argv", args):
             cc1101._cli._export_config()
+    with transceiver_class_mock() as transceiver_mock:
+        pass
     if output_power_settings is None:
-        transceiver_mock().__enter__().set_output_power.assert_not_called()
+        transceiver_mock.set_output_power.assert_not_called()
     else:
-        transceiver_mock().__enter__().set_output_power.assert_called_with(
-            output_power_settings
-        )
+        transceiver_mock.set_output_power.assert_called_with(output_power_settings)
 
 
 def test_export_python_list(capsys, caplog):
-    with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
-        transceiver_mock().__enter__().get_configuration_register_values.return_value = {
+    with unittest.mock.patch("cc1101.CC1101") as transceiver_class_mock:
+        with transceiver_class_mock() as transceiver_mock:
+            pass
+        transceiver_mock.get_configuration_register_values.return_value = {
             cc1101.addresses.ConfigurationRegisterAddress.IOCFG2: 0x29,
             cc1101.addresses.ConfigurationRegisterAddress.IOCFG1: 0x2E,
         }
-        transceiver_mock().__enter__()._get_patable.return_value = [0xC6] + [0] * 7
+        transceiver_mock._get_patable.return_value = [0xC6] + [0] * 7
         with unittest.mock.patch("sys.argv", [""]):
             with caplog.at_level(logging.INFO):
                 cc1101._cli._export_config()
-    assert caplog.record_tuples == [
-        ("cc1101._cli", 20, str(transceiver_mock().__enter__()))
-    ]
+    assert caplog.record_tuples == [("cc1101._cli", 20, str(transceiver_mock))]
     out, err = capsys.readouterr()
     assert not err
     assert (
@@ -125,8 +126,9 @@ def test_root_log_level(args, root_log_level, log_format):
 def test_logging(caplog):
     with unittest.mock.patch("sys.argv", [""]), unittest.mock.patch(
         "cc1101.CC1101"
-    ) as transceiver_mock, caplog.at_level(logging.DEBUG):
-        transceiver_mock().__enter__().__str__.return_value = "dummystr"
+    ) as transceiver_class_mock, caplog.at_level(logging.DEBUG):
+        with transceiver_class_mock() as transceiver_mock:
+            transceiver_mock.__str__.return_value = "dummystr"
         cc1101._cli._export_config()
     assert len(caplog.records) == 2
     assert caplog.records[0].levelno == logging.DEBUG
