@@ -49,7 +49,7 @@ def test_configure_device(args, packet_length_mode, checksum_disabled):
             packet_length_mode
         )
     transceiver_mock.set_packet_length_bytes.assert_not_called()
-    if checksum_disabled:
+    if checksum_disabled:  # pylint: disable=duplicate-code
         transceiver_mock.disable_checksum.assert_called_once_with()
     else:
         transceiver_mock.disable_checksum.assert_not_called()

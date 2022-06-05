@@ -127,7 +127,7 @@ def test_configure_device(
         transceiver_mock.set_sync_mode.assert_not_called()
     else:
         transceiver_mock.set_sync_mode.assert_called_once_with(sync_mode)
-    if packet_length_mode is None:
+    if packet_length_mode is None:  # pylint: disable=duplicate-code
         transceiver_mock.set_packet_length_mode.assert_not_called()
     else:
         transceiver_mock.set_packet_length_mode.assert_called_once_with(
