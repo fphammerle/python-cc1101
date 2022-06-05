@@ -104,45 +104,43 @@ def test_configure_device(
     payload,
 ):
     # pylint: disable=too-many-arguments
-    with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
+    with unittest.mock.patch("cc1101.CC1101") as transceiver_class_mock:
         stdin_mock = unittest.mock.MagicMock()
         stdin_mock.buffer = io.BytesIO(payload)
         with unittest.mock.patch("sys.stdin", stdin_mock):
             with unittest.mock.patch("sys.argv", args):
                 cc1101._cli._transmit()
-    transceiver_mock.assert_called_once_with(lock_spi_device=True)
+    transceiver_class_mock.assert_called_once_with(lock_spi_device=True)
+    with transceiver_class_mock() as transceiver_mock:
+        pass
     if base_frequency_hertz is None:
-        transceiver_mock().__enter__().set_base_frequency_hertz.assert_not_called()
+        transceiver_mock.set_base_frequency_hertz.assert_not_called()
     else:
-        transceiver_mock().__enter__().set_base_frequency_hertz.assert_called_once_with(
+        transceiver_mock.set_base_frequency_hertz.assert_called_once_with(
             base_frequency_hertz
         )
     if symbol_rate_baud is None:
-        transceiver_mock().__enter__().set_symbol_rate_baud.assert_not_called()
+        transceiver_mock.set_symbol_rate_baud.assert_not_called()
     else:
-        transceiver_mock().__enter__().set_symbol_rate_baud.assert_called_once_with(
-            symbol_rate_baud
-        )
+        transceiver_mock.set_symbol_rate_baud.assert_called_once_with(symbol_rate_baud)
     if sync_mode is None:
-        transceiver_mock().__enter__().set_sync_mode.assert_not_called()
+        transceiver_mock.set_sync_mode.assert_not_called()
     else:
-        transceiver_mock().__enter__().set_sync_mode.assert_called_once_with(sync_mode)
+        transceiver_mock.set_sync_mode.assert_called_once_with(sync_mode)
     if packet_length_mode is None:
-        transceiver_mock().__enter__().set_packet_length_mode.assert_not_called()
+        transceiver_mock.set_packet_length_mode.assert_not_called()
     else:
-        transceiver_mock().__enter__().set_packet_length_mode.assert_called_once_with(
+        transceiver_mock.set_packet_length_mode.assert_called_once_with(
             packet_length_mode
         )
     if packet_length_mode == PacketLengthMode.FIXED:
-        transceiver_mock().__enter__().set_packet_length_bytes.assert_called_with(
-            len(payload)
-        )
+        transceiver_mock.set_packet_length_bytes.assert_called_with(len(payload))
     else:
-        transceiver_mock().__enter__().set_packet_length_bytes.assert_not_called()
+        transceiver_mock.set_packet_length_bytes.assert_not_called()
     if checksum_disabled:
-        transceiver_mock().__enter__().disable_checksum.assert_called_once_with()
+        transceiver_mock.disable_checksum.assert_called_once_with()
     else:
-        transceiver_mock().__enter__().disable_checksum.assert_not_called()
+        transceiver_mock.disable_checksum.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -159,19 +157,19 @@ def test_configure_device(
     ),
 )
 def test_configure_device_output_power(args, output_power_settings):
-    with unittest.mock.patch("cc1101.CC1101") as transceiver_mock:
+    with unittest.mock.patch("cc1101.CC1101") as transceiver_class_mock:
         stdin_mock = unittest.mock.MagicMock()
         stdin_mock.buffer = io.BytesIO(b"message")
         with unittest.mock.patch("sys.stdin", stdin_mock):
             with unittest.mock.patch("sys.argv", args):
                 cc1101._cli._transmit()
-    transceiver_mock.assert_called_once_with(lock_spi_device=True)
+    transceiver_class_mock.assert_called_once_with(lock_spi_device=True)
+    with transceiver_class_mock() as transceiver_mock:
+        pass
     if output_power_settings:
-        transceiver_mock().__enter__().set_output_power.assert_called_with(
-            output_power_settings
-        )
+        transceiver_mock.set_output_power.assert_called_with(output_power_settings)
     else:
-        transceiver_mock().__enter__().set_output_power.assert_not_called()
+        transceiver_mock.set_output_power.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -206,10 +204,11 @@ def test_logging(caplog, payload):
     stdin_mock.buffer = io.BytesIO(payload)
     with unittest.mock.patch("sys.stdin", stdin_mock), unittest.mock.patch(
         "sys.argv", [""]
-    ), unittest.mock.patch("cc1101.CC1101") as transceiver_mock, caplog.at_level(
+    ), unittest.mock.patch("cc1101.CC1101") as transceiver_class_mock, caplog.at_level(
         logging.DEBUG
     ):
-        transceiver_mock().__enter__().__str__.return_value = "dummy"
+        with transceiver_class_mock() as transceiver_mock:
+            transceiver_mock.__str__.return_value = "dummy"
         cc1101._cli._transmit()
     assert len(caplog.records) == 2
     assert caplog.records[0].name == "cc1101._cli"
