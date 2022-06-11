@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-verison: ['3.9']
+        python-version: ['3.9']
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-verison: ['3.9']
+        python-version: ['3.9']
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
