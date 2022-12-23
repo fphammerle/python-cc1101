@@ -43,6 +43,11 @@ tomli = {markers = "python_version < '3.11'"}
 # >     import wrapt
 # > ModuleNotFoundError: No module named 'wrapt'
 wrapt = "*"
+# remove `"markers": "python_version >= '3.11'"` to workaround:
+# >   File "[...]/lib/python3.7/site-packages/pylint/lint/parallel.py", line 13, in <module>
+# >     import dill
+# > ModuleNotFoundError: No module named 'dill'
+dill = {markers = "python_version >= '0'"}
 
 [requires]
 python_version = "3"
