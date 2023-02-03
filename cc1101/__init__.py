@@ -69,7 +69,6 @@ class MainRadioControlStateMachineState(enum.IntEnum):
 
 
 class _ReceivedPacket:  # unstable
-
     # "Table 31: Typical RSSI_offset Values"
     _RSSI_OFFSET_dB = 74
 
@@ -114,7 +113,6 @@ def _format_patable(settings: typing.Iterable[int], insert_spaces: bool) -> str:
 
 
 class CC1101:
-
     # pylint: disable=too-many-public-methods
 
     # > All transfers on the SPI interface are done
