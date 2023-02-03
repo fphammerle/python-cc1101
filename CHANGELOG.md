@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - declare compatibility with `python3.11`
 
+### Changed
+- `CC1101.transmit`: raise `RuntimeError` instead of `Exception` when
+  attempting to transmit in non-idle state
+
 ### Removed
 - compatibility with `python3.5` & `python3.6`
 
