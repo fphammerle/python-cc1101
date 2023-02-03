@@ -901,7 +901,7 @@ class CC1101:
             )
         marcstate = self.get_main_radio_control_state_machine_state()
         if marcstate != MainRadioControlStateMachineState.IDLE:
-            raise Exception(
+            raise RuntimeError(
                 f"device must be idle before transmission (current marcstate: {marcstate.name})"
             )
         self._flush_tx_fifo_buffer()
