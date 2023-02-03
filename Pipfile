@@ -24,6 +24,9 @@ pylint-import-requirements = "*"
 pytest = "*"
 pytest-cov = "*"
 
+# python3.7 compatibility
+# https://github.com/PyCQA/isort/commit/47cedf3583f338e8ce9c906fc95c9fee6c57404d
+isort = "<5.12"
 # python3.10 compatibility
 # >   File "[...]/lib/python3.10/site-packages/mypy/main.py", line 11, in <module>
 # >     from typing_extensions import Final, NoReturn
