@@ -156,7 +156,11 @@ class CC1101:
     _PATABLE_LENGTH_BYTES = 8
 
     def __init__(
-        self, spi_bus: int = 0, spi_chip_select: int = 0, lock_spi_device: bool = False
+        self,
+        spi_bus: int = 0,
+        spi_chip_select: int = 0,
+        lock_spi_device: bool = False,
+        spi_max_speed_hz: int = 55700,
     ) -> None:
         """
         lock_spi_device:
@@ -177,6 +181,7 @@ class CC1101:
             >>>     # lock removed
         """
         self._spi = spidev.SpiDev()
+        self._spi_max_speed_hz = int(spi_max_speed_hz)
         self._spi_bus = int(spi_bus)
         # > The BCM2835 core common to all Raspberry Pi devices has 3 SPI Controllers:
         # > SPI0, with two hardware chip selects, [...]
@@ -558,7 +563,7 @@ class CC1101:
             # lock removed in __exit__ by SpiDev.close()
             fcntl.flock(self._spi.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         try:
-            self._spi.max_speed_hz = 55700  # empirical
+            self._spi.max_speed_hz = self._spi_max_speed_hz
             self._reset()
             self._verify_chip()
             self._configure_defaults()
