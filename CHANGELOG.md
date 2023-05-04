@@ -5,10 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [3.0.0] - 2023-05-04
 ### Added
 - declare compatibility with `python3.11`
 - allow parametrization of `spi_max_speed_hz` during `C1101` class instantiation
-  to solve [issue-128] 
+  to solve [issue-128]
 
 ### Changed
 - `CC1101.transmit`: raise `RuntimeError` instead of `Exception` when
@@ -119,7 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - disabled data whitening
 - automatic calibration
 
-[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v2.7.3...HEAD
+[Unreleased]: https://github.com/fphammerle/python-cc1101/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/fphammerle/python-cc1101/compare/v2.7.3...v3.0.0
 [2.7.3]: https://github.com/fphammerle/python-cc1101/compare/v2.7.2...v2.7.3
 [2.7.2]: https://github.com/fphammerle/python-cc1101/compare/v2.7.1...v2.7.2
 [2.7.1]: https://github.com/fphammerle/python-cc1101/compare/v2.7.0...v2.7.1
