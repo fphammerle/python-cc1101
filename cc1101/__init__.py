@@ -181,7 +181,7 @@ class CC1101:
             >>>     # lock removed
         """
         self._spi = spidev.SpiDev()
-        self._spi_max_speed_hz = int(spi_max_speed_hz)
+        self._spi_max_speed_hz = spi_max_speed_hz
         self._spi_bus = int(spi_bus)
         # > The BCM2835 core common to all Raspberry Pi devices has 3 SPI Controllers:
         # > SPI0, with two hardware chip selects, [...]

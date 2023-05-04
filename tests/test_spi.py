@@ -35,6 +35,7 @@ def test___init__select_device(bus, chip_select):
     assert transceiver._spi_bus == bus
     assert transceiver._spi_chip_select == chip_select
     assert transceiver._spi_device_path == f"/dev/spidev{bus}.{chip_select}"
+    assert transceiver._spi_max_speed_hz == 55700
     transceiver._spi.open.side_effect = SystemExit
     with pytest.raises(SystemExit):
         with transceiver:
@@ -87,6 +88,7 @@ def test___enter__(transceiver, chip_version):
             assert transceiver == transceiver_context
             transceiver._spi.open.assert_called_once_with(0, 0)
             assert transceiver._spi.max_speed_hz == 55700
+            assert transceiver._spi.max_speed_hz == transceiver._spi_max_speed_hz
             reset_mock.assert_called_once_with()
             set_modulation_format_mock.assert_called_once_with(
                 cc1101.options.ModulationFormat.ASK_OOK
@@ -97,6 +99,19 @@ def test___enter__(transceiver, chip_version):
                 unittest.mock.call(0x18, [0b010100]),
                 unittest.mock.call(0x02, [0b000001]),
             ]
+
+
+@pytest.mark.parametrize("spi_max_speed_hz", [55700, 500000])
+def test___enter__spi_max_speed(spi_max_speed_hz):
+    with unittest.mock.patch("spidev.SpiDev"):
+        transceiver = cc1101.CC1101(spi_max_speed_hz=spi_max_speed_hz)
+    assert transceiver._spi_max_speed_hz == spi_max_speed_hz
+    with unittest.mock.patch.object(
+        transceiver, "_reset", side_effect=SystemExit
+    ), pytest.raises(SystemExit):
+        with transceiver:
+            pass
+    assert transceiver._spi.max_speed_hz == spi_max_speed_hz
 
 
 def test___enter___unsupported_partnum(transceiver):
