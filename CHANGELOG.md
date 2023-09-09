@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- compatibility with `python3.7`
+
 ## [3.0.0] - 2023-05-04
 ### Added
 - declare compatibility with `python3.11`
