@@ -20,7 +20,6 @@ black = "*"
 blinkcheck = {version = ">=0.1.1", markers = "python_version >= '3.8'"}
 mypy = "*"
 pylint = "*"
-pylint-import-requirements = "*"
 pytest = "*"
 pytest-cov = "*"
 
