@@ -357,8 +357,7 @@ class CC1101:
             math.log2(real / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ) + 20
         )
         mantissa = round(
-            real * 2**28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2**exponent
-            - 256
+            real * 2**28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2**exponent - 256
         )
         if mantissa == 256:
             exponent += 1
@@ -671,16 +670,22 @@ class CC1101:
             f"symbol_rate={(self.get_symbol_rate_baud() / 1000):.2f}kBaud",
             f"modulation_format={self.get_modulation_format().name}",
             f"sync_mode={sync_mode.name}",
-            f"preamble_length={self.get_preamble_length_bytes()}B"
-            if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
-            else None,
-            f"sync_word=0x{self.get_sync_word().hex()}"
-            if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
-            else None,
+            (
+                f"preamble_length={self.get_preamble_length_bytes()}B"
+                if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
+                else None
+            ),
+            (
+                f"sync_word=0x{self.get_sync_word().hex()}"
+                if sync_mode != SyncMode.NO_PREAMBLE_AND_SYNC_WORD
+                else None
+            ),
             "packet_length{}{}B".format(  # pylint: disable=consider-using-f-string
-                "≤"
-                if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
-                else "=",
+                (
+                    "≤"
+                    if self.get_packet_length_mode() == PacketLengthMode.VARIABLE
+                    else "="
+                ),
                 self.get_packet_length_bytes(),
             ),
             "output_power="

@@ -68,9 +68,11 @@ def _add_common_args(argparser: argparse.ArgumentParser) -> None:
 def _init_logging(args: argparse.Namespace) -> None:
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
-        format="%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s"
-        if args.debug
-        else "%(message)s",
+        format=(
+            "%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s"
+            if args.debug
+            else "%(message)s"
+        ),
         datefmt="%Y-%m-%dT%H:%M:%S%z",
     )
 

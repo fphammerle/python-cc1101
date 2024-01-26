@@ -40,9 +40,11 @@ def test___str___(transceiver_str, sync_word):
     ), unittest.mock.patch.object(
         transceiver,
         "get_sync_mode",
-        return_value=cc1101.SyncMode.TRANSMIT_16_MATCH_15_BITS
-        if sync_word
-        else cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD,
+        return_value=(
+            cc1101.SyncMode.TRANSMIT_16_MATCH_15_BITS
+            if sync_word
+            else cc1101.SyncMode.NO_PREAMBLE_AND_SYNC_WORD
+        ),
     ), unittest.mock.patch.object(
         transceiver, "get_preamble_length_bytes", return_value=4
     ), unittest.mock.patch.object(
