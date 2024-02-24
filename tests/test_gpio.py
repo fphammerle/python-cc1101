@@ -37,6 +37,14 @@ def test__load_libgpiod():
     find_library_mock.assert_called_once_with("gpiod")
 
 
+def test_load_libgpiod_not_found():
+    cc1101._gpio._load_libgpiod.cache_clear()
+    with unittest.mock.patch(
+        "ctypes.util.find_library", return_value=None
+    ), pytest.raises(FileNotFoundError):
+        cc1101._gpio._load_libgpiod()
+
+
 @pytest.mark.parametrize("name", ("GPIO24", "GPIO25"))
 def test_line_find_permission_denied(libgpiod_mock, name):
     libgpiod_mock.gpiod_line_find.return_value = 0
@@ -125,4 +133,17 @@ def test_line_wait_for_rising_edge_busy(
     ):
         line.wait_for_rising_edge(
             consumer=consumer, timeout=datetime.timedelta(seconds=timeout_seconds)
+        )
+
+
+def test_line_wait_for_rising_edge_wait_failed(libgpiod_mock) -> None:
+    line = cc1101._gpio.GPIOLine(pointer=ctypes.c_void_p(42 // 2))
+    libgpiod_mock.gpiod_line_request_rising_edge_events.return_value = 0
+    # "0 if wait timed out, -1 if an error occurred, 1 if an event occurred."
+    libgpiod_mock.gpiod_line_event_wait.return_value = -1
+    with pytest.raises(
+        OSError, match="^Failed to wait for rising edge event notification.$"
+    ):
+        line.wait_for_rising_edge(
+            consumer=b"test", timeout=datetime.timedelta(seconds=1)
         )
