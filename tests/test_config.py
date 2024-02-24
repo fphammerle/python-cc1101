@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import typing
 import unittest.mock
 import warnings
 
@@ -156,6 +157,21 @@ def test_set_base_frequency_hertz_low_warning(transceiver, freq_hz, warn):
         )
     else:
         assert not caught_warnings
+
+
+@pytest.mark.parametrize(
+    ("settings", "insert_spaces", "expected_str"),
+    [
+        ((198,), True, "(0xc6,)"),
+        ((198,), False, "(0xc6,)"),
+        ((0, 198), True, "(0, 0xc6)"),
+        ((21, 42, 17), False, "(0x15,0x2a,0x11)"),
+    ],
+)
+def test__format_patable(
+    settings: typing.List[int], insert_spaces: bool, expected_str: str
+) -> None:
+    assert cc1101._format_patable(settings, insert_spaces=insert_spaces) == expected_str
 
 
 @pytest.mark.parametrize(
