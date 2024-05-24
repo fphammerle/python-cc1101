@@ -220,3 +220,73 @@ def test_set_output_power(transceiver, patable_index, power_levels):
 def test_set_output_power_invalid(transceiver, power_levels):
     with pytest.raises(Exception):
         transceiver.set_output_power(power_levels)
+
+
+def test_get_configuration_register_values_defaults(transceiver: cc1101.CC1101) -> None:
+    transceiver._spi.xfer.return_value = [
+        0,  # chip status byte
+        0x29,
+        0x2E,
+        0x3F,
+        0x07,
+        0xD3,
+        0x91,
+        0xFF,
+        0b00000100,
+        0b01000101,
+        0x00,
+        0x00,
+        0x0F,
+        0x00,
+        0x1E,
+        0xC4,
+        0xEC,
+        0b10001100,
+        0x22,
+        0b00000010,
+        0b00100010,
+        0xF8,
+        0b01000111,
+        0b00000111,
+        0b00110000,
+        0b00000100,
+        0b00110110,
+        0b01101100,
+        0b00000011,
+        0b01000000,
+        0b10010001,
+        0x87,
+        0x6B,
+        0b11111000,
+        0b01010110,
+        0b00010000,
+        0b10101001,
+        0b00001010,
+        0x20,
+        0x0D,
+        0x41,
+        0x00,
+        0x59,
+        0x7F,
+        0x3F,
+        0x88,
+        0x31,
+        0b00001011,
+    ]
+    values = transceiver.get_configuration_register_values()
+    transceiver._spi.xfer.assert_called_once_with([0xC0 | 0] + [0] * 47)
+    assert values[cc1101.ConfigurationRegisterAddress.IOCFG2] == 0x29
+    assert values[cc1101.ConfigurationRegisterAddress.IOCFG1] == 0x2E
+    assert values[cc1101.ConfigurationRegisterAddress.TEST0] == 0b00001011
+
+
+def test_get_configuration_register_values(transceiver: cc1101.CC1101) -> None:
+    transceiver._spi.xfer.return_value = [0, 0x1E, 0xC4, 0xEC]
+    values = transceiver.get_configuration_register_values(
+        start_register=cc1101.ConfigurationRegisterAddress.FREQ2,
+        end_register=cc1101.ConfigurationRegisterAddress.FREQ0,
+    )
+    transceiver._spi.xfer.assert_called_once_with([0xC0 | 0x0D] + [0] * 3)
+    assert values[cc1101.ConfigurationRegisterAddress.FREQ2] == 0x1E
+    assert values[cc1101.ConfigurationRegisterAddress.FREQ1] == 0xC4
+    assert values[cc1101.ConfigurationRegisterAddress.FREQ0] == 0xEC
