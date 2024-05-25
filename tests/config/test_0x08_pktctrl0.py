@@ -19,7 +19,9 @@ import unittest.mock
 
 import pytest
 
-from cc1101.options import PacketLengthMode
+# pylint: disable=import-private-name
+import cc1101
+from cc1101.options import PacketLengthMode, _TransceiveMode
 
 # pylint: disable=protected-access
 
@@ -32,7 +34,9 @@ from cc1101.options import PacketLengthMode
         (0b11111111, 0b10111111),
     ],
 )
-def test_disable_data_whitening(transceiver, pktctrl0_before, pktctrl0_after):
+def test_disable_data_whitening(
+    transceiver: cc1101.CC1101, pktctrl0_before: int, pktctrl0_after: int
+) -> None:
     xfer_mock = transceiver._spi.xfer
     xfer_mock.return_value = [0xFF] * 2  # chip status byte
     with unittest.mock.patch.object(
@@ -40,6 +44,15 @@ def test_disable_data_whitening(transceiver, pktctrl0_before, pktctrl0_after):
     ):
         transceiver._disable_data_whitening()
     xfer_mock.assert_called_once_with([0x08 | 0x40, pktctrl0_after])
+
+
+def test__get_transceive_mode(transceiver: cc1101.CC1101) -> None:
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [0x00, 0b01000101]
+    assert transceiver._get_transceive_mode() == _TransceiveMode.FIFO
+    xfer_mock.assert_called_once_with([0x08 | 0x80, 0])
+    xfer_mock.return_value = [0x00, 0b00110101]
+    assert transceiver._get_transceive_mode() == _TransceiveMode.ASYNCHRONOUS_SERIAL
 
 
 @pytest.mark.parametrize(
