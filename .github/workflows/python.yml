@@ -62,7 +62,6 @@ jobs:
     # https://github.com/PyCQA/pylint/issues/352
     - run: pipenv run pylint tests/*
     - run: pipenv run mypy "$(cat *.egg-info/top_level.txt)" tests
-    - uses: coverallsapp/github-action@v2
   check-links:
     runs-on: ubuntu-20.04
     strategy:
