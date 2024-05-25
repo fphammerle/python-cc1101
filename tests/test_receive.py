@@ -46,6 +46,10 @@ def test__get_received_packet(transceiver, payload):
     assert received_packet._rssi_index == 128
     assert received_packet.checksum_valid
     assert received_packet.link_quality_indicator == 42
+    with unittest.mock.patch.object(
+        transceiver, "_read_status_register", return_value=0
+    ):
+        assert transceiver._get_received_packet() is None
 
 
 @pytest.mark.parametrize("gdo0_gpio_line_name", (b"GPIO24", b"GPIO25"))
