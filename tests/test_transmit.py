@@ -54,6 +54,25 @@ def test_transmit_unexpected_payload_len(transceiver, packet_length, payload):
             transceiver.transmit(payload)
 
 
+def test_transmit_not_idle(transceiver: cc1101.CC1101) -> None:
+    with unittest.mock.patch.object(
+        transceiver,
+        "get_packet_length_mode",
+        return_value=cc1101.options.PacketLengthMode.VARIABLE,
+    ), unittest.mock.patch.object(
+        transceiver, "get_packet_length_bytes", return_value=42 // 2
+    ), unittest.mock.patch.object(
+        transceiver,
+        "get_main_radio_control_state_machine_state",
+        return_value=cc1101.MainRadioControlStateMachineState.RX,
+    ), pytest.raises(
+        RuntimeError,
+        match=r"^device must be idle before transmission \(current marcstate: RX\)$",
+    ):
+        transceiver.transmit(b"\x01\x02\x03")
+    transceiver._spi.xfer.assert_not_called()
+
+
 @pytest.mark.parametrize("payload", (b"\0", b"\xaa\xbb\xcc", bytes(range(42))))
 def test_transmit_fixed(caplog, transceiver, payload):
     transceiver._spi.xfer.side_effect = lambda v: [15] * len(v)
