@@ -57,7 +57,7 @@ jobs:
       env:
         PYTHON_VERSION: ${{ matrix.python-version }}
     - run: pipenv graph
-    - run: pipenv run pytest --cov="$(cat *.egg-info/top_level.txt)" --cov-report=term-missing --cov-fail-under=98
+    - run: pipenv run pytest --cov="$(cat *.egg-info/top_level.txt)" --cov-report=term-missing --cov-fail-under=99
     - run: pipenv run pylint "$(cat *.egg-info/top_level.txt)"
     # https://github.com/PyCQA/pylint/issues/352
     - run: pipenv run pylint tests/*

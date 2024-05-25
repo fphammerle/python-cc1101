@@ -3,6 +3,7 @@ import unittest.mock
 
 import pytest
 
+import cc1101.addresses
 import cc1101.options
 
 # pylint: disable=protected-access
@@ -128,3 +129,23 @@ def test_transmit_variable(transceiver, payload):
         unittest.mock.call([0x3F | 0x40] + [len(payload)] + list(payload)),
         unittest.mock.call([0x35]),  # start transmission
     ]
+
+
+def test_asynchronous_transmission(transceiver: cc1101.CC1101) -> None:
+    with unittest.mock.patch.object(
+        transceiver, "_set_transceive_mode"
+    ) as set_mode_mock, unittest.mock.patch.object(
+        transceiver, "_command_strobe"
+    ) as command_mock:
+        with transceiver.asynchronous_transmission() as input_pin:
+            set_mode_mock.assert_called_once_with(
+                cc1101.options._TransceiveMode.ASYNCHRONOUS_SERIAL
+            )
+            set_mode_mock.reset_mock()
+            command_mock.assert_called_once_with(cc1101.addresses.StrobeAddress.STX)
+            command_mock.reset_mock()
+            transceiver._spi.xfer.assert_not_called()
+            assert input_pin == cc1101.Pin.GDO0
+        set_mode_mock.assert_called_once_with(cc1101.options._TransceiveMode.FIFO)
+        command_mock.assert_called_once_with(cc1101.addresses.StrobeAddress.SIDLE)
+        transceiver._spi.xfer.assert_not_called()
