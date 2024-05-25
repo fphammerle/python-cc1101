@@ -26,6 +26,24 @@ from cc1101.options import PacketLengthMode
 
 @pytest.mark.parametrize(
     ("pktctrl0_before", "pktctrl0_after"),
+    [
+        (0b01000101, 0b00000101),
+        (0b00000101, 0b00000101),
+        (0b11111111, 0b10111111),
+    ],
+)
+def test_disable_data_whitening(transceiver, pktctrl0_before, pktctrl0_after):
+    xfer_mock = transceiver._spi.xfer
+    xfer_mock.return_value = [0xFF] * 2  # chip status byte
+    with unittest.mock.patch.object(
+        transceiver, "_read_single_byte", return_value=pktctrl0_before
+    ):
+        transceiver._disable_data_whitening()
+    xfer_mock.assert_called_once_with([0x08 | 0x40, pktctrl0_after])
+
+
+@pytest.mark.parametrize(
+    ("pktctrl0_before", "pktctrl0_after"),
     (
         # unchanged
         (0b00000000, 0b00000000),
