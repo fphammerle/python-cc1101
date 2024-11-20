@@ -24,7 +24,7 @@ import pytest
 import cc1101._cli
 from cc1101.options import PacketLengthMode, SyncMode
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access,too-many-positional-arguments
 
 
 @pytest.mark.parametrize(

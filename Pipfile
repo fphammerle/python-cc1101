@@ -23,11 +23,6 @@ pylint = "*"
 pytest = "*"
 pytest-cov = "*"
 
-# python3.10 compatibility
-# >   File "[...]/lib/python3.10/site-packages/mypy/main.py", line 11, in <module>
-# >     from typing_extensions import Final, NoReturn
-# > ModuleNotFoundError: No module named 'typing_extensions'
-typing-extensions = {markers = ""}
 # python<3.11 compatibility
 # >    File "[...]/lib/python3.10/site-packages/_pytest/_code/code.py", line 60, in <module>
 # >     from exceptiongroup import BaseExceptionGroup
@@ -37,10 +32,6 @@ exceptiongroup = {markers = "python_version < '3.11'"}
 # >     import tomli as tomllib
 # > ModuleNotFoundError: No module named 'tomli'
 tomli = {markers = "python_version < '3.11'"}
-# >   File "[...]/lib/python3.10/site-packages/astroid/decorators.py", line 16, in <module>
-# >     import wrapt
-# > ModuleNotFoundError: No module named 'wrapt'
-wrapt = "*"
 # remove `"markers": "python_version >= '3.11'"` to workaround:
 # >   File "[...]/lib/python3.7/site-packages/pylint/lint/parallel.py", line 13, in <module>
 # >     import dill
