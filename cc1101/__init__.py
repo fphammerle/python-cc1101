@@ -82,6 +82,7 @@ class MainRadioControlStateMachineState(enum.IntEnum):
     RXTX_SWITCH = 0x15
     TXFIFO_UNDERFLOW = 0x16
 
+
 class _ReceivedPacket:  # unstable
     # "Table 31: Typical RSSI_offset Values"
     _RSSI_OFFSET_dB = 74
