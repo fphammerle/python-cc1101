@@ -372,8 +372,7 @@ class CC1101:
             math.log2(real / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ) + 20
         )
         mantissa = round(
-            real * 2**28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2**exponent
-            - 256
+            real * 2**28 / cls._CRYSTAL_OSCILLATOR_FREQUENCY_HERTZ / 2**exponent - 256
         )
         if mantissa == 256:
             exponent += 1
