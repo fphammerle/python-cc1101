@@ -70,6 +70,5 @@ setuptools.setup(
         # https://github.com/doceme/py-spidev
         "spidev",
     ],
-    setup_requires=["setuptools_scm"],
     tests_require=["pytest"],
 )

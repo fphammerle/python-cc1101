@@ -1,0 +1,3 @@
+[build-system]
+# https://github.com/pypa/setuptools-scm/tree/v7.1.0?tab=readme-ov-file#pyprojecttoml-usage
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
