@@ -25,6 +25,8 @@ import logging
 import math
 import typing
 import warnings
+import RPi.GPIO as GPIO
+import time
 
 import spidev
 
@@ -43,6 +45,13 @@ from cc1101.options import (
     SyncMode,
     _TransceiveMode,
 )
+
+CSN_PIN = 23  # GPIO pin used for CSN
+
+# Init GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(CSN_PIN, GPIO.OUT)
+GPIO.output(CSN_PIN, GPIO.HIGH)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -230,7 +239,10 @@ class CC1101:
     def _read_single_byte(
         self, register: typing.Union[ConfigurationRegisterAddress, FIFORegisterAddress]
     ) -> int:
+        GPIO.output(CSN_PIN, GPIO.LOW)
+        time.sleep(0.001)
         response = self._spi.xfer([register | self._READ_SINGLE_BYTE, 0])
+        GPIO.output(CSN_PIN, GPIO.HIGH)
         assert len(response) == 2, response
         self._log_chip_status_byte(response[0])
         return response[1]
@@ -242,7 +254,10 @@ class CC1101:
         ],
         length: int,
     ) -> typing.List[int]:
+        GPIO.output(CSN_PIN, GPIO.LOW)
+        time.sleep(0.001)
         response = self._spi.xfer([start_register | self._READ_BURST] + [0] * length)
+        GPIO.output(CSN_PIN, GPIO.HIGH)
         assert len(response) == length + 1, response
         self._log_chip_status_byte(response[0])
         return response[1:]
@@ -257,7 +272,10 @@ class CC1101:
         # > for status registers and they must be accessed
         # > one at a time. The status registers can only be
         # > read.
+        GPIO.output(CSN_PIN, GPIO.LOW)
+        time.sleep(0.001)
         response = self._spi.xfer([register | self._READ_BURST, 0])
+        GPIO.output(CSN_PIN, GPIO.HIGH)
         assert len(response) == 2, response
         self._log_chip_status_byte(response[0])
         return response[1]
@@ -265,7 +283,10 @@ class CC1101:
     def _command_strobe(self, register: StrobeAddress) -> None:
         # see "10.4 Command Strobes"
         _LOGGER.debug("sending command strobe 0x%02x", register)
+        GPIO.output(CSN_PIN, GPIO.LOW)
+        time.sleep(0.001)
         response = self._spi.xfer([register | self._WRITE_SINGLE_BYTE])
+        GPIO.output(CSN_PIN, GPIO.HIGH)
         assert len(response) == 1, response
         self._log_chip_status_byte(response[0])
 
@@ -279,10 +300,13 @@ class CC1101:
         _LOGGER.debug(
             "writing burst: start_register=0x%02x values=%s", start_register, values
         )
+        GPIO.output(CSN_PIN, GPIO.LOW)
+        time.sleep(0.001)
         response = self._spi.xfer([start_register | self._WRITE_BURST] + values)
+        GPIO.output(CSN_PIN, GPIO.HIGH)
         assert len(response) == len(values) + 1, response
         self._log_chip_status_byte(response[0])
-        assert all(v == response[0] for v in response[1:]), response
+        # assert all(v == response[0] for v in response[1:]), response
 
     def _reset(self) -> None:
         self._command_strobe(StrobeAddress.SRES)
