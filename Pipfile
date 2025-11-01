@@ -1,7 +1,7 @@
 [[source]]
+name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-name = "pypi"
 
 [packages]
 cc1101 = {editable = true, path = "."}
@@ -32,11 +32,6 @@ exceptiongroup = {markers = "python_version < '3.11'"}
 # >     import tomli as tomllib
 # > ModuleNotFoundError: No module named 'tomli'
 tomli = {markers = "python_version < '3.11'"}
-# remove `"markers": "python_version >= '3.11'"` to workaround:
-# >   File "[...]/lib/python3.7/site-packages/pylint/lint/parallel.py", line 13, in <module>
-# >     import dill
-# > ModuleNotFoundError: No module named 'dill'
-dill = {markers = "python_version >= '0'"}
 
 [requires]
 python_version = "3"

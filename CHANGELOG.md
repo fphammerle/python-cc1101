@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - defined all state in MainRadioControlStateMachineState as in datasheet page 93 
 
 ### Removed
-- compatibility with `python3.7` & `python3.8`
+- compatibility with `python3.7`, `python3.8` & `python3.9`
 
 ## [3.0.0] - 2023-05-04
 ### Added

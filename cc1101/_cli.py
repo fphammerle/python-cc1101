@@ -18,7 +18,6 @@
 import argparse
 import logging
 import sys
-import typing
 
 import cc1101
 import cc1101.options
@@ -81,7 +80,7 @@ def _configure_via_args(
     *,
     transceiver: cc1101.CC1101,
     args: argparse.Namespace,
-    packet_length_if_fixed: typing.Optional[int],
+    packet_length_if_fixed: int | None,
 ) -> None:
     if args.base_frequency_hertz:
         transceiver.set_base_frequency_hertz(args.base_frequency_hertz)

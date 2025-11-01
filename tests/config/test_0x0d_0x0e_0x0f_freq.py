@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-
 import pytest
 
 import cc1101
@@ -30,7 +28,7 @@ import cc1101
 )
 def test_get_base_frequency_hertz(
     transceiver: cc1101.CC1101,
-    freq210: typing.Tuple[int, int, int],
+    freq210: tuple[int, int, int],
     frequency_hertz: int,
 ) -> None:
     transceiver._spi.xfer.return_value = [0] + list(freq210)
@@ -46,7 +44,7 @@ def test_get_base_frequency_hertz(
 )
 def test_set_base_frequency_hertz(
     transceiver: cc1101.CC1101,
-    freq210: typing.Tuple[int, int, int],
+    freq210: tuple[int, int, int],
     frequency_hertz: int,
 ) -> None:
     transceiver._spi.xfer.return_value = [15] * (1 + 3)

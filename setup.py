@@ -50,7 +50,6 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: POSIX :: Linux",
         # .github/workflows/python.yml
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Topic :: Home Automation",
@@ -64,7 +63,9 @@ setuptools.setup(
     },
     # >=3.6 f-strings, variable type hints, force kwargs with *
     # >=3.7 postponed evaluation of type annotations (PEP563)
-    python_requires=">=3.9",  # python<3.9 untested
+    # >=3.9 type hints dict[…], list[…] & tuple[…] (PEP585)
+    # >=3.10 union types as X | Y (PEP604)
+    python_requires=">=3.10",
     install_requires=[
         # apt install python3-spidev
         # https://github.com/doceme/py-spidev

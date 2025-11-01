@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v5
     - uses: actions/setup-python@v6
@@ -34,7 +34,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - '3.9'
         - '3.10'
         - '3.11'
       fail-fast: false
@@ -56,8 +55,7 @@ jobs:
       env:
         PYTHON_VERSION: ${{ matrix.python-version }}
     - run: pipenv graph
-    - run: >-
-        pipenv run pytest --cov="$(cat *.egg-info/top_level.txt)"
+    - run: pipenv run pytest --cov="$(cat *.egg-info/top_level.txt)"
         --cov-report=term-missing --cov-fail-under=100
     - run: pipenv run pylint "$(cat *.egg-info/top_level.txt)"
     # https://github.com/PyCQA/pylint/issues/352
@@ -67,13 +65,13 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.9']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v5
     - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-    - run: pip install --upgrade pipenv==2020.8.13
+    - run: pip install --upgrade pipenv==2025.0.4
     - run: pipenv install --python "$PYTHON_VERSION" --deploy --dev
       env:
         PYTHON_VERSION: ${{ matrix.python-version }}

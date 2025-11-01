@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import collections.abc
 import contextlib
 import datetime
 import enum
@@ -117,7 +118,9 @@ class _ReceivedPacket:  # unstable
         return f"{type(self).__name__}(RSSI {self.rssi_dbm:.0f}dBm, 0x{self.payload.hex()})"
 
 
-def _format_patable(settings: typing.Iterable[int], insert_spaces: bool) -> str:
+def _format_patable(
+    settings: collections.abc.Iterable[int], insert_spaces: bool
+) -> str:
     # "Table 39: Optimum PATABLE Settings" uses hexadecimal digits
     # "0" for brevity
     settings_hex = tuple(map(lambda s: "0" if s == 0 else f"0x{s:x}", settings))
@@ -228,7 +231,7 @@ class CC1101:
         )
 
     def _read_single_byte(
-        self, register: typing.Union[ConfigurationRegisterAddress, FIFORegisterAddress]
+        self, register: ConfigurationRegisterAddress | FIFORegisterAddress
     ) -> int:
         response = self._spi.xfer([register | self._READ_SINGLE_BYTE, 0])
         assert len(response) == 2, response
@@ -237,11 +240,11 @@ class CC1101:
 
     def _read_burst(
         self,
-        start_register: typing.Union[
-            ConfigurationRegisterAddress, PatableAddress, FIFORegisterAddress
-        ],
+        start_register: (
+            ConfigurationRegisterAddress | PatableAddress | FIFORegisterAddress
+        ),
         length: int,
-    ) -> typing.List[int]:
+    ) -> list[int]:
         response = self._spi.xfer([start_register | self._READ_BURST] + [0] * length)
         assert len(response) == length + 1, response
         self._log_chip_status_byte(response[0])
@@ -271,10 +274,10 @@ class CC1101:
 
     def _write_burst(
         self,
-        start_register: typing.Union[
-            ConfigurationRegisterAddress, PatableAddress, FIFORegisterAddress
-        ],
-        values: typing.List[int],
+        start_register: (
+            ConfigurationRegisterAddress | PatableAddress | FIFORegisterAddress
+        ),
+        values: list[int],
     ) -> None:
         _LOGGER.debug(
             "writing burst: start_register=0x%02x values=%s", start_register, values
@@ -365,7 +368,7 @@ class CC1101:
         )
 
     @classmethod
-    def _symbol_rate_real_to_floating_point(cls, real: float) -> typing.Tuple[int, int]:
+    def _symbol_rate_real_to_floating_point(cls, real: float) -> tuple[int, int]:
         # see "12 Data Rate Programming"
         assert real > 0, real
         exponent = math.floor(
@@ -422,7 +425,7 @@ class CC1101:
         self,
         mode: SyncMode,
         *,
-        _carrier_sense_threshold_enabled: typing.Optional[bool] = None,  # unstable
+        _carrier_sense_threshold_enabled: bool | None = None,  # unstable
     ) -> None:
         """
         MDMCFG2.SYNC_MODE
@@ -589,7 +592,7 @@ class CC1101:
             raise
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):  # -> typing.Literal[False]
+    def __exit__(self, exc_type, exc_value, traceback) -> typing.Literal[False]:
         # https://docs.python.org/3/reference/datamodel.html#object.__exit__
         self._spi.close()
         return False
@@ -631,28 +634,28 @@ class CC1101:
         return self.get_main_radio_control_state_machine_state()
 
     @classmethod
-    def _frequency_control_word_to_hertz(cls, control_word: typing.List[int]) -> float:
+    def _frequency_control_word_to_hertz(cls, control_word: list[int]) -> float:
         return (
             int.from_bytes(control_word, byteorder="big", signed=False)
             * cls._FREQUENCY_CONTROL_WORD_HERTZ_FACTOR
         )
 
     @classmethod
-    def _hertz_to_frequency_control_word(cls, hertz: float) -> typing.List[int]:
+    def _hertz_to_frequency_control_word(cls, hertz: float) -> list[int]:
         return list(
             round(hertz / cls._FREQUENCY_CONTROL_WORD_HERTZ_FACTOR).to_bytes(
                 length=3, byteorder="big", signed=False
             )
         )
 
-    def _get_base_frequency_control_word(self) -> typing.List[int]:
+    def _get_base_frequency_control_word(self) -> list[int]:
         # > The base or start frequency is set by the 24 bitfrequency
         # > word located in the FREQ2, FREQ1, FREQ0 registers.
         return self._read_burst(
             start_register=ConfigurationRegisterAddress.FREQ2, length=3
         )
 
-    def _set_base_frequency_control_word(self, control_word: typing.List[int]) -> None:
+    def _set_base_frequency_control_word(self, control_word: list[int]) -> None:
         self._write_burst(
             start_register=ConfigurationRegisterAddress.FREQ2, values=control_word
         )
@@ -715,7 +718,7 @@ class CC1101:
             ConfigurationRegisterAddress
         ),
         end_register: ConfigurationRegisterAddress = max(ConfigurationRegisterAddress),
-    ) -> typing.Dict[ConfigurationRegisterAddress, int]:
+    ) -> dict[ConfigurationRegisterAddress, int]:
         assert start_register <= end_register, (start_register, end_register)
         values = self._read_burst(
             start_register=start_register, length=end_register - start_register + 1
@@ -828,7 +831,7 @@ class CC1101:
             start_register=ConfigurationRegisterAddress.PKTCTRL0, values=[pktctrl0]
         )
 
-    def _get_patable(self) -> typing.Tuple[int, ...]:
+    def _get_patable(self) -> tuple[int, ...]:
         """
         see "10.6 PATABLE Access" and "24 Output Power Programming"
 
@@ -840,13 +843,13 @@ class CC1101:
             )
         )
 
-    def _set_patable(self, settings: typing.Iterable[int]):
+    def _set_patable(self, settings: collections.abc.Iterable[int]):
         settings = list(settings)
         assert all(0 <= l <= 0xFF for l in settings), settings
         assert 0 < len(settings) <= self._PATABLE_LENGTH_BYTES, settings
         self._write_burst(start_register=PatableAddress.PATABLE, values=settings)
 
-    def get_output_power(self) -> typing.Tuple[int, ...]:
+    def get_output_power(self) -> tuple[int, ...]:
         """
         Returns the enabled output power settings
         (up to 8 bytes of the PATABLE register).
@@ -855,7 +858,7 @@ class CC1101:
         """
         return self._get_patable()[: self._get_power_amplifier_setting_index() + 1]
 
-    def set_output_power(self, power_settings: typing.Iterable[int]) -> None:
+    def set_output_power(self, power_settings: collections.abc.Iterable[int]) -> None:
         """
         Configures output power levels by setting PATABLE and FREND0.PA_POWER.
         Up to 8 bytes may be provided.
@@ -933,7 +936,7 @@ class CC1101:
         self._command_strobe(StrobeAddress.STX)
 
     @contextlib.contextmanager
-    def asynchronous_transmission(self) -> typing.Iterator[Pin]:
+    def asynchronous_transmission(self) -> collections.abc.Iterator[Pin]:
         """
         > [...] the GDO0 pin is used for data input [...]
         > The CC1101 modulator samples the level of the asynchronous input
@@ -959,7 +962,7 @@ class CC1101:
     def _enable_receive_mode(self) -> None:
         self._command_strobe(StrobeAddress.SRX)
 
-    def _get_received_packet(self) -> typing.Optional[_ReceivedPacket]:  # unstable
+    def _get_received_packet(self) -> _ReceivedPacket | None:  # unstable
         """
         see section "20 Data FIFO"
         """
@@ -979,7 +982,7 @@ class CC1101:
         self,
         timeout: datetime.timedelta,
         gdo0_gpio_line_name: bytes = b"GPIO24",  # recommended in README.md
-    ) -> typing.Optional[_ReceivedPacket]:
+    ) -> _ReceivedPacket | None:
         """
         depends on IOCFG0 == 0b00000001 (see _configure_defaults)
         """

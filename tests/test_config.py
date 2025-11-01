@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
 import unittest.mock
 import warnings
 
@@ -169,7 +168,7 @@ def test_set_base_frequency_hertz_low_warning(transceiver, freq_hz, warn):
     ],
 )
 def test__format_patable(
-    settings: typing.List[int], insert_spaces: bool, expected_str: str
+    settings: list[int], insert_spaces: bool, expected_str: str
 ) -> None:
     assert cc1101._format_patable(settings, insert_spaces=insert_spaces) == expected_str
 
