@@ -3,7 +3,6 @@ import time
 
 import cc1101
 
-
 logging.basicConfig(level=logging.INFO)
 
 with cc1101.CC1101(lock_spi_device=True) as transceiver:

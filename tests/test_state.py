@@ -19,7 +19,6 @@ import pytest
 
 import cc1101
 
-
 # pylint: disable=protected-access
 
 

@@ -2,7 +2,6 @@ import logging
 
 import cc1101
 
-
 logging.basicConfig(level=logging.INFO)
 
 with cc1101.CC1101() as transceiver:

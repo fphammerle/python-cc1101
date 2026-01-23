@@ -1,6 +1,5 @@
 import cc1101
 
-
 with cc1101.CC1101() as transceiver:
     for register, value in transceiver.get_configuration_register_values().items():
         print(
