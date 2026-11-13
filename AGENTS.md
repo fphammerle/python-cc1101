@@ -70,6 +70,9 @@
 - Pull requests / branches with **multiple commits that should stay separate**: create a merge
   commit (GitHub merge method `merge`).
 - Never call GitHub's merge API without an explicit merge method, and never use `squash` or `rebase`.
+- When working on pull requests across the owner's repositories (e.g. merging Dependabot pull
+  requests), first check whether each repository is **archived** and skip archived ones entirely —
+  they're read-only, so their pull requests are to be ignored (no merging, no access requests).
 
 ## CI failures
 
