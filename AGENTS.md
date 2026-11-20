@@ -55,9 +55,10 @@
 - Keep existing commit signatures: never rewrite commits when merging — no GitHub squash or rebase
   merge, no cherry-picking or re-creating commits locally. Rewriting replaces signed commits (e.g.
   Dependabot's) with new, unsigned or differently signed ones.
-- Pull requests / branches with a **single commit**, or whose changes should be squashed into a
-  single commit: **fast-forward** `master` to the branch's head commit, so that exact commit lands
-  on `master`.
+- **The owner's written instruction to "merge" means fast-forward.** When the owner tells you to
+  merge a pull request / branch with a **single commit** (their own words in the conversation, e.g.
+  "merge" or "merge if CI passes"), **fast-forward** `master` to the branch's head commit, so that
+  exact commit lands on `master` — nothing else.
   - Squashing belongs on the branch, done by its author — squashing someone else's signed commits
     yourself would drop their signatures.
   - The head commit's parent must be the current `master` tip. If it isn't, have the branch
@@ -67,9 +68,13 @@
     for them the way GitHub's merge button does.
   - Then push the head commit: `git push origin <head-sha>:master` (no force) — GitHub marks the
     pull request as merged.
-- Pull requests / branches with **multiple commits that should stay separate**: create a merge
-  commit (GitHub merge method `merge`).
-- Never call GitHub's merge API without an explicit merge method, and never use `squash` or `rebase`.
+- **Merge commits require the owner's explicit permission** for each pull request — a plain
+  written instruction to merge (e.g. "merge" or "merge if CI passes") is **not** that permission.
+  When in doubt whether a fast-forward fits, or when you think a merge commit should be created
+  (e.g. multiple commits that should stay separate), **ask first** and wait for the answer. Only
+  with that permission create one, with GitHub merge method `merge`.
+  - Never call GitHub's merge API without an explicit merge method — its default creates a merge
+    commit (this happened once with Dependabot pull requests). Never use `squash` or `rebase`.
 - When working on pull requests across the owner's repositories (e.g. merging Dependabot pull
   requests), first check whether each repository is **archived** and skip archived ones entirely —
   they're read-only, so their pull requests are to be ignored (no merging, no access requests).
